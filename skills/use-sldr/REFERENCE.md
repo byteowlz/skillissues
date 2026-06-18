@@ -38,11 +38,18 @@ footer: "© My Org"               # per-slide footer; overrides the flavor's def
 align: left|center|right         # horizontal override
 valign: top|center|bottom        # vertical override
 tags: [topic, demo]              # for ls/search
+translations:                    # optional: per-language chrome (see below)
+  de:
+    title: Überschrift
+    subtitle: kleinere Zeile
+    source: "Artikel | Seite"
 ---
 body markdown…
 ```
 
 `title`/`subtitle`/`source`/`footer` are read by the **framed** layouts as chrome slots; plain layouts render the markdown body and ignore them (use a markdown `#`/`##` heading there instead).
+
+**Translating chrome.** `--lang` swaps the body (`::lang:xx::`) *and* the chrome. Top-level `title`/`subtitle`/`source`/`source_url`/`footer` are the default language; an optional `translations.<lang>` block overrides them per language, and any omitted field falls back to the top-level value. Building a non-default language for a slide that has chrome but no `translations` block warns loudly and falls back — never a silent wrong-language headline. (It's the frontmatter analog of the body's `::lang:xx::`.)
 
 ## Body markers
 
@@ -50,7 +57,7 @@ Split a slide's body for column/image layouts. A marker must stand alone on its 
 
 - `::left::` / `::right::` → two-column layouts (`two-cols`, `framed-cols`, `versus`, …).
 - `::content::` / `::image::` → content + image layouts (`image-left`, `image-right`, `framed-image`, `framed-scatter`).
-- `::lang:xx::` → per-language sections in one file (e.g. `::lang:en::`, `::lang:de::`). Content before the first marker is shared by every language. Build a language with `--lang xx`; a missing language warns and falls back to the deck default.
+- `::lang:xx::` → per-language **body** sections in one file (e.g. `::lang:en::`, `::lang:de::`). Content before the first marker is shared by every language. Build a language with `--lang xx`; a missing language warns and falls back to the deck default. (Framed **chrome** translates via the frontmatter `translations:` block — see *Slide frontmatter*.)
 
 Images: `![alt](media/x.png)` relative to the slide file. Embedded at build (no runtime dependency).
 
