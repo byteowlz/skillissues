@@ -51,8 +51,8 @@ Author a slide once; reuse it in any deck, restyle with any flavor, rebuild byte
 
 - Title/section: `cover` `section` `intro` `statement` `hero-stat` `contact` `end`
 - Body: `default` `two-cols` `two-cols-header` `pillars` `agenda` `timeline` `versus` `quote` `terminal` `split-accent`
-- Image: `image` `image-left` `image-right` `feature-image` `image-grid` `image-row` `image-portraits` `image-stack`
-- Branded (persistent chrome): `framed` `framed-cols` `framed-image` `framed-gallery` `framed-scatter` `framed-cover` `framed-section` `framed-full`
+- Image: `image` `image-center` `image-left` `image-right` `feature-image` `image-grid` `image-row` `image-portraits` `image-stack`
+- Branded (persistent chrome): `framed` `framed-cols` `framed-image` `framed-figure` `framed-gallery` `framed-scatter` `framed-cover` `framed-section` `framed-full`
 
 ## Build & share
 
