@@ -64,6 +64,8 @@ Images: `![alt](media/x.png)` relative to the slide file. Embedded at build (no 
 
 ## Layout catalog (use when)
 
+These are the four `sldr ls layouts` categories. Each layout also carries a *register* tag — `classic` (predictable placement) or `expressive` (dramatic), plus `branded` for the framed family — author-declared in the layout file (`<!-- sldr:category … -->` / `<!-- sldr:tags … -->`). Pick by content shape; register is the taste filter. See them grouped with `sldr ls layouts`.
+
 - `cover` — title slide, centered hero. · `section` — big centered divider. · `intro` — orientation paragraph. · `statement` — one oversized declaration (accent on bold/italic words). · `hero-stat` — one huge number + caption. · `contact` — closing slide, contact lines as chips. · `end` — minimal closer.
 - `default` — heading + body, top-anchored. · `two-cols` / `two-cols-header` — two columns (`::left::`/`::right::`). · `pillars` — list items as editorial columns. · `agenda` — numbered run-of-show. · `timeline` — list items as milestones on a line. · `versus` — head-to-head columns with a VS badge. · `quote` — dramatic centered quote. · `terminal` — code framed as a terminal window. · `split-accent` — content + diagonal accent panel.
 - `image` — full-bleed image (fills, may crop). · `image-center` — one image shown whole (uncropped), centered, no text. · `image-left`/`image-right` — image + content (`::content::`/`::image::`). · `feature-image` — image-dominant with a caption rail. · `image-grid`/`image-row`/`image-portraits`/`image-stack` — collages (one `![]()` per line; alt text becomes captions where shown).

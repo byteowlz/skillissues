@@ -54,6 +54,8 @@ Author a slide once; reuse it in any deck, restyle with any flavor, rebuild byte
 - Image: `image` `image-center` `image-left` `image-right` `feature-image` `image-grid` `image-row` `image-portraits` `image-stack`
 - Branded (persistent chrome): `framed` `framed-cols` `framed-image` `framed-figure` `framed-gallery` `framed-scatter` `framed-cover` `framed-section` `framed-full`
 
+These four are the `sldr ls layouts` **categories** (Title&section / Body / Image / Branded). A second axis is **register**: most layouts are `classic` (predictable, boring-but-effective placement); `statement` `hero-stat` `quote` `versus` `split-accent` `terminal` `framed-scatter` are `expressive` (dramatic). Pick by *content shape*; use register as the taste filter (e.g. keep a corporate deck classic). `sldr ls layouts` prints them grouped with these tags; `--json` carries `category`+`tags`.
+
 ## Build & share
 
 ```bash
