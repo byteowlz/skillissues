@@ -13,14 +13,16 @@ Full detail behind `SKILL.md`. Names are fuzzy-matched and file extensions are o
 ## Commands
 
 - `sldr init` — create the library tree, install bundled flavors/scaffolds and the reference deck (`sldr build reference` to see every layout).
-- `sldr new <name> --scaffold <s> --dir <subdir>` — create a slide from a scaffold (a pre-filled starter).
+- `sldr new <name> --scaffold <s> --dir <subdir>` — create a slide from a scaffold (a pre-filled starter); `{{title}}`/`{{name}}` are substituted from the slide name. `sldr ls scaffolds` for the list — e.g. `translated-figure` scaffolds a bilingual content+image slide done right (shared image, per-language `::content::`, `translations` chrome).
+- `sldr slides create` — batch-create slide files from JSON on stdin (or `--file`). The **agent-native authoring path** — no hand-written markers. Per slide: `{"name","title","layout","content"}` plus optional chrome (`subtitle`, `source`, `source_url`, `footer`) and a `translations` map. The map `{"de":{"title":…,"subtitle":…,"source":…,"content":…}}` emits both the `translations.<lang>` chrome frontmatter **and** the `::lang:<lang>::` body blocks for you, and auto-pairs per-language text with `::content::` when the shared `content` carries an `::image::`. Flags: `--dry-run`, `--json`, `--force`.
 - `sldr playlist create` — make a playlist from JSON on stdin (or `--file`, or `--from-dir <dir> --name <n>`). Minimal JSON: `{"name":"talk","title":"My Talk","slides":["intro","point","end"]}`. Optional: `"flavor"`, `"description"`.
 - `sldr add <playlist> <slides>` / `sldr rm <playlist> <slides>` — edit a playlist's slide list.
 - `sldr build <playlist>` — flags: `--flavor <a,b,c>` (first active, rest embed for the `T` switcher), `--lang <a,b>` (embed languages, `L` switcher), `--single-file`, `--output <dir>`, `--pdf`, `--pptx`.
 - `sldr watch <playlist>` — live-reload dev server. Flags: `--flavor`, `--port`, `--host 0.0.0.0` (expose on the LAN — prints reachable URLs).
 - `sldr open <playlist|.sldr>` — open a built deck in the browser; a `.sldr` bundle is extracted, rebuilt, and presented.
 - `sldr bundle <playlist>` — pack the editable sources into a portable `.sldr` (a plain zip). Flags mirror build (`--flavor`, `--lang`, `--output`).
-- `sldr export <playlist> --format pdf|pptx` — lossy exit doors.
+- `sldr export <playlist> --format pdf|pptx` — exit doors. **PDF** is print-to-PDF. **PPTX** is *native, editable* OOXML by default — each slide's chrome + body become real PowerPoint placeholders/pictures (square bullets, bold/italic, per-language `--lang` all preserved). `--flatten` falls back to the lossy screenshot-per-slide path; `--template --flavor X` emits just theme + masters (no slides) to author new branded slides in PowerPoint. Native PPTX covers the layouts that declare export zones (today: `framed`, `two-cols`, `image-left`/`image-right`); others are named in a fail-loud message pointing to `--flatten`.
+- `sldr import <file.pptx>` — round-trip a sldr-generated `.pptx` back into slide markdown (the inverse of native export; layout, chrome, bulleted body, and images reconstructed). Refuses decks sldr didn't generate.
 - `sldr preview <slide>` / `sldr sample [--flavor]` — quick single-slide / sample-deck preview.
 - `sldr ls slides|playlists|flavors|layouts|scaffolds` — list names. `sldr show layout <name>` / `sldr show flavor <name>` — print the *source* a name resolves to (the authored `.html`/`.toml`, built-in or user override; honors the build's resolution order; source to stdout, origin to stderr, `--json` for both). Use it to learn the format, copy a starting point, or see what a name really resolves to.
 - `sldr search <query>` · `sldr config` · `sldr serve`.
@@ -59,6 +61,8 @@ Split a slide's body for column/image layouts. A marker must stand alone on its 
 - `::content::` / `::image::` → content + image layouts (`image-left`, `image-right`, `framed-image`).
 - `::left::` / `::right::` also drive `framed-scatter` (article left, image collage right) and `versus`.
 - `::lang:xx::` → per-language **body** sections in one file (e.g. `::lang:en::`, `::lang:de::`). Content before the first marker is shared by every language. Build a language with `--lang xx`; a missing language warns and falls back to the deck default. (Framed **chrome** translates via the frontmatter `translations:` block — see *Slide frontmatter*.)
+
+**Marker/layout match is checked.** If a layout has an image or column slot but the body lacks the matching markers (e.g. `framed-image`/`image-left` with no `::content::`/`::image::`, or a two-column layout with no `::left::`/`::right::`), the build warns loudly — naming the slide, layout, and expected markers — instead of silently dropping the image into the text column. (Letting a split body fall into a *plain* layout is intentional graceful degradation and does not warn.)
 
 Images: `![alt](media/x.png)` relative to the slide file. Embedded at build (no runtime dependency).
 

@@ -148,6 +148,32 @@ Content before the first `::lang::` marker is shared by all languages. A request
 
 ---
 
+## 4b. A bilingual content+image slide — generated from JSON (no markers by hand)
+
+The fiddly case — framed chrome + per-language text + a **shared** image — is best generated with `sldr slides create` rather than hand-written. You give a flat object; sldr writes the `translations.<lang>` frontmatter, the `::lang::` blocks, and pairs the text with `::content::` (because the shared body has an `::image::`):
+
+```bash
+sldr slides create <<'JSON'
+{"slides":[{
+  "name":"claude-tag",
+  "title":"Claude Tag",
+  "layout":"framed-image",
+  "subtitle":"Teamwork with Claude in Slack",
+  "source":"Claude / X",
+  "source_url":"https://x.com/…",
+  "content":"::image::\n\n![Screenshot](media/claude-tag.png)",
+  "translations":{
+    "en":{"content":"Claude now works alongside your team in Slack."},
+    "de":{"title":"Claude Tag","subtitle":"Teamarbeit mit Claude in Slack","source":"Claude / X","content":"Claude arbeitet jetzt mit deinem Team in Slack."}
+  }
+}]}
+JSON
+```
+
+→ a correct `~/sldr/slides/claude-tag.md` with the image declared once, `::lang:en::`/`::lang:de::` each wrapped in `::content::`, and translated chrome — builds with `--lang en,de` and no marker warnings. (Copy-a-template alternative: `sldr new claude-tag --scaffold translated-figure`, then fill it in.)
+
+---
+
 ## 5. Sharing
 
 ```bash
