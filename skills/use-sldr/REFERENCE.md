@@ -62,9 +62,14 @@ Split a slide's body for column/image layouts. A marker must stand alone on its 
 - `::left::` / `::right::` also drive `framed-scatter` (article left, image collage right) and `versus`.
 - `::lang:xx::` → per-language **body** sections in one file (e.g. `::lang:en::`, `::lang:de::`). Content before the first marker is shared by every language. Build a language with `--lang xx`; a missing language warns and falls back to the deck default. (Framed **chrome** translates via the frontmatter `translations:` block — see *Slide frontmatter*.)
 
-**Marker/layout match is checked.** If a layout has an image or column slot but the body lacks the matching markers (e.g. `framed-image`/`image-left` with no `::content::`/`::image::`, or a two-column layout with no `::left::`/`::right::`), the build warns loudly — naming the slide, layout, and expected markers — instead of silently dropping the image into the text column. (Letting a split body fall into a *plain* layout is intentional graceful degradation and does not warn.)
+**Marker/layout match is checked.** If a layout has an image or column slot but the body lacks the matching markers (e.g. `framed-image`/`image-left` with no `::content::`/`::image::`, or a two-column layout with no `::left::`/`::right::`), the build warns loudly — naming the slide, layout, and expected markers — instead of silently dropping the image into the text column. (Letting a split body fall into a *plain* layout is intentional graceful degradation and does not warn.) A **stray** marker that doesn't form a pair (a lone `::content::`, a marker on a single-block layout) is **stripped from the output and reported** — so it never renders as literal `::content::` text. Only the four split markers above are special; anything else is plain text.
 
-Images: `![alt](media/x.png)` relative to the slide file. Embedded at build (no runtime dependency).
+## Images, diagrams & graphics
+
+- **Images:** `![alt](media/x.png)` relative to the slide file. Embedded at build (no runtime dependency). PNG/JPG/GIF/WebP and **SVG** all work; SVG is inlined as vector.
+- **Diagrams:** a ` ```mermaid ` code fence **renders as a diagram** (flowchart, sequence, state, xychart, …). Mermaid runs client-side from a bundled copy — fully offline, and inlined only into decks that actually use it. Don't expect a mermaid fence to show as code; it becomes the rendered diagram (a syntax error shows mermaid's error diagram, not raw text).
+- **Vector / custom graphics:** the reliable path is an SVG **file** — `![](chart.svg)` — embedded at build. You can also drop raw `<svg>…</svg>` inline, or use a ` ```svg ` / ` ```html ` fence (passed through and rendered, not syntax-highlighted). Prefer the file reference for anything complex.
+- **Charts from data:** author them as a mermaid `xychart-beta`, or generate an SVG and reference it. There's no "paste a Chart.js snippet" path — it's static HTML output.
 
 ## Layout catalog (use when)
 

@@ -174,6 +174,28 @@ JSON
 
 ---
 
+## 4c. A diagram slide (mermaid, rendered offline)
+
+A ` ```mermaid ` fence renders as a real diagram — no screenshot, no external service. Shown with a `~~~` outer fence so the inner triple-backticks are literal:
+
+~~~markdown
+---
+title: The agent loop
+layout: framed
+---
+```mermaid
+flowchart LR
+  A[Prompt] --> B[Agent]
+  B --> C{Tool needed?}
+  C -->|yes| D[Call tool] --> B
+  C -->|no| E[Answer]
+```
+~~~
+
+Mermaid is bundled and runs client-side (offline; inlined only into decks that use it). For a static chart instead, generate an SVG and reference it: `![](media/adoption.svg)`.
+
+---
+
 ## 5. Sharing
 
 ```bash
