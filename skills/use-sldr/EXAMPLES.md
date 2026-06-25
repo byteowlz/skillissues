@@ -155,22 +155,22 @@ The fiddly case — framed chrome + per-language text + a **shared** image — i
 ```bash
 sldr slides create <<'JSON'
 {"slides":[{
-  "name":"claude-tag",
-  "title":"Claude Tag",
+  "name":"launch-clip",
+  "title":"Launch headline",
   "layout":"framed-image",
-  "subtitle":"Teamwork with Claude in Slack",
-  "source":"Claude / X",
-  "source_url":"https://x.com/…",
-  "content":"::image::\n\n![Screenshot](media/claude-tag.png)",
+  "subtitle":"one-line context",
+  "source":"Publication | Site",
+  "source_url":"https://example.com/article",
+  "content":"::image::\n\n![Screenshot](media/launch-clip.png)",
   "translations":{
-    "en":{"content":"Claude now works alongside your team in Slack."},
-    "de":{"title":"Claude Tag","subtitle":"Teamarbeit mit Claude in Slack","source":"Claude / X","content":"Claude arbeitet jetzt mit deinem Team in Slack."}
+    "en":{"content":"The English caption for the clipping."},
+    "de":{"title":"Schlagzeile","subtitle":"Kontext in einem Satz","source":"Publikation | Seite","content":"Die deutsche Bildunterschrift."}
   }
 }]}
 JSON
 ```
 
-→ a correct `~/sldr/slides/claude-tag.md` with the image declared once, `::lang:en::`/`::lang:de::` each wrapped in `::content::`, and translated chrome — builds with `--lang en,de` and no marker warnings. (Copy-a-template alternative: `sldr new claude-tag --scaffold translated-figure`, then fill it in.)
+→ a correct `~/sldr/slides/launch-clip.md` with the image declared once, `::lang:en::`/`::lang:de::` each wrapped in `::content::`, and translated chrome — builds with `--lang en,de` and no marker warnings. (Copy-a-template alternative: `sldr new launch-clip --scaffold translated-figure`, then fill it in.)
 
 ---
 
