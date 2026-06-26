@@ -40,7 +40,9 @@ skill_lines="$(
 )"
 
 tmp="$(mktemp)"
-awk -v start="$start" -v end="$end" -v skills="$skill_lines" '
+export BYTEOWLZ_SKILL_LINES="$skill_lines"
+awk -v start="$start" -v end="$end" '
+  BEGIN { skills = ENVIRON["BYTEOWLZ_SKILL_LINES"] }
   $0 == start {
     print
     if (skills != "") print skills
