@@ -45,17 +45,24 @@ cheap.
 2. **Decide the layout from the task, not a template.** What is the primary object? What
    does the user scan? What do they act on? That's your pane count. Three-pane is one
    answer, not the answer (rule IA1).
-3. **Visualize before you build.** Render the proposed design as a before/after mock (HTML
-   via the `visual-explainer` skill, or ANSI captured from a prototype) and confirm the
-   hierarchy reads. Calibrate against yazi/Helix. **Do not start writing widget code
-   before the layout passes the squint test.**
+3. **Visualize before you build — and verify the structure, not just the text.** Render
+   the proposed design as a before/after mock (HTML via `visual-explainer`, or ANSI
+   captured from a prototype) and confirm: distinct surface shades for bars vs content,
+   titled panels with visible borders, and one accent on focus. Calibrate against
+   yazi/Helix. **Do not start writing widget code until the layout has real visual
+   structure** — a frame that is just text on one background has failed, even if the
+   text is correctly colored.
 4. **Reach for the kit.** Depend on `byteowlz-tui-kit`; wire the `Theme`, register
    `Action`s, drive a `KeyRouter`, and render with the kit widgets. Add tool-specific
    widgets *as data over the kit*, not by forking it. See [REFERENCE.md](REFERENCE.md).
 5. **Keep the TUI one surface over the Core.** Every TUI action is also a CLI subcommand
    over the same Core. The TUI is a view, never the only path (rule IA5).
-6. **Verify it renders modern.** Run it, capture the frame, check it against the rules
-   below. Structure compiling ≠ looks right.
+6. **Verify it renders modern — actually look at the frame.** Run it, capture the frame,
+   and check it against the rules: are there distinct surface shades (bar fills vs
+   content)? titled panels with borders? one accent on the active panel/focus row?
+   **Capturing the bytes is not enough** — render and eyeball it. The reference demo was
+   once shipped with a flat void of white-on-black text because structure was claimed but
+   never verified; don't repeat that. Structure compiling ≠ looks right.
 
 ## The pattern set
 
@@ -64,15 +71,18 @@ purpose, with a stated reason — never by neglect.
 
 ### Visual (why they look ugly/dated)
 
-- **V1 — Air over borders.** Separate regions with whitespace + padding, not boxes. A
-  `bordered` block must earn its place. Default: no border, `Padding` inside. Border only
-  the *focused* region, or a single hairline. *(kills: boxy, cramped, dated)*
+- **V1 — Thin styled borders + subtle fills, not boxes and not a void.** Draw each region
+  inside a titled, rounded-border panel; fill header/status **bars** with a dark surface
+  token distinct from the content bg. The contrast between the content surface and the
+  bar fill *is* the structure. Avoid the two failure modes equally: heavy double-boxes
+  (old mmry) **and** a borderless sea of floating text (the void). *(kills: boxy/dated,
+  AND the flat/unstructured look)*
 - **V2 — One accent, muted base.** Palette = 3–4 grays + **one** accent + semantic state
   colors. Color carries *state*, never decoration. *(kills: ugly, clashing)*
 - **V3 — Weight is hierarchy; color is state.** Bold = primary, `Muted`/dim = secondary.
   Most "ugly" is equal weight + color noise. *(kills: bad visual hierarchy)*
-- **V4 — Padding inside, gaps between.** 1-space cell padding; spacer `Constraint`s between
-  regions. *(kills: cramped, old)*
+- **V4 — Padding inside, gaps between.** 1-space cell padding inside panels; a spacer
+  column between side-by-side panels. Tight edges = dated. *(kills: cramped, old)*
 - **V5 — Hide the chrome.** One quiet status line for hints + counts. No busy toolbars.
   *(kills: cluttered)*
 - **V6 — Graceful truncation.** `…` ellipsis, never mid-glyph cuts or chaotic wrap.

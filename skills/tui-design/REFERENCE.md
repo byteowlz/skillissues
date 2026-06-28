@@ -43,20 +43,33 @@ clap.workspace = true
 
 All examples assume `use byteowlz_tui_kit::prelude::*;`.
 
-### theme — tokens to ANSI colors
+### theme — tokens to ANSI colors (two surface shades)
 
-`Theme::ansi_default()` maps every [`Token`](../CONTEXT.md) to a named ANSI color (color 4
-Blue = accent, color 8 DarkGray = muted, `Reset` = surface/primary). **Never pass a raw
-`Color::Rgb`/hex** unless you have a stated reason; use `.with_token(token, color)` for the
-rare override.
+`Theme::ansi_default()` maps every [`Token`](../CONTEXT.md) to a named ANSI color. The
+load-bearing detail: **there are two surface shades**, and using them correctly is what
+creates visual structure:
+
+- `Surface` → `Color::Reset` (the terminal's content bg). **Content floats on this.
+  Never use it for bars/panels** or you get the flat void.
+- `Bar` → `Color::Black` (a real dark fill the terminal maps to a surface). Used for
+  header/status **bars** and panel structure.
+- `Muted` → `DarkGray` (text + thin borders); `Accent` → Blue (one accent, focus +
+  primary).
+
+Each token works as a foreground (`.fg()`) **or** a background fill (`.bg()` / `.on_bar()`):
 
 ```rust
 let theme = Theme::ansi_default();
 let title    = theme.fg_bold(Token::Primary);   // main text, bold
-let meta     = theme.fg(Token::Muted);          // secondary, dark gray
+let meta     = theme.fg(Token::Muted);          // secondary + borders
 let cursor   = theme.focus();                    // accent + bold, for the active row
 let danger   = theme.fg(Token::Danger);          // state: destructive
+let header   = theme.on_bar_bold(Token::Accent); // bold accent text on a filled bar
+let bar_fill = theme.bg(Token::Bar);             // the dark surface fill for strips
 ```
+
+Never pass a raw `Color::Rgb`/hex unless you have a stated reason; use
+`.with_token(token, color)` for the rare override.
 
 ### action — Actions are data; the prefix router kills modes
 
@@ -127,12 +140,26 @@ if let Some(p) = app.palette.as_mut() { p.draw(frame, theme); }
 Filter is fuzzy, matches are highlighted in the accent, the Key Path is shown beside each
 label. The palette and the key router share **one** action substrate — two discovery paths.
 
-### widgets + event + terminal
+### widgets — panels, bars, and the rest
+
+The structure primitives (`panel`, `bar`, `draw_status_bar`) are where the visual
+structure comes from. Use them:
+
+```rust
+use byteowlz_tui_kit::widgets::{panel, bar};
+// a titled rounded panel; active = accent border, inactive = muted
+let block = panel("items", theme, /* active */ true);
+frame.render_stateful_widget(list.block(block), area, &mut state);
+
+// a filled header/status strip
+let line = Line::from(vec![Span::styled(" memory ", theme.on_bar_bold(Token::Accent))]);
+frame.render_widget(bar(line, theme), header_area);
+```
 
 - `Selection` — first-class, cursor-orthogonal multi-select. `.next/.previous/.top/.bottom`,
   `.toggle/.select_all/.deselect_all`, `.is_selected`, `.state()` for ratatui's `List`.
-- `draw_status_bar(frame, area, theme, left, &[(key, label)])` — the single quiet status
-  line. One line, never a toolbar.
+- `draw_status_bar(frame, area, theme, left, &[(key, label)])` — the single status line,
+  filled with `Bar`, hints right-aligned.
 - `draw_empty_state(frame, area, theme, prompt)` — never show a blank pane (IA4).
 - `centered_rect(px, py, area)` — the popup primitive for every overlay.
 - `poll_event(tick) -> io::Result<Option<AppEvent>>` — synchronous loop; `AppEvent::Key` is
@@ -179,9 +206,13 @@ clippy threshold). The reference demo already splits `layout`/`body`/`draw_list`
 
 ## Gotchas (real, from building the kit + demo)
 
-- **`Color::Reset`, not `Color::Black`, for surface/primary.** `Reset` means "the
-  terminal's default fg/bg" — that's the ANSI-default contract. `Black` would force black
-  and break light themes.
+- **`Color::Reset`, not `Color::Black`, for the *content* `Surface`.** `Reset` = terminal
+  default bg, so content floats on the operator's theme. But **`Bar` must be `Black`
+ (a real fill)**, not `Reset` — that's the whole point of having two surface shades.
+  Using `Reset` for bars produces the flat void. (The kit's `Bar` token is `Black`.)
+- **You cannot `render_widget` a bare `Style`.** To fill a region's background, render a
+  `Paragraph::new("").style(theme.bg(Token::Bar))` or a `Block` with `.style(...)`. The
+  kit's `draw_status_bar`/`bar` do this for you.
 - **No `KeyCode::Space`.** Use `KeyCode::Char(' ')`. (The kit's `Key::space()` does this.)
 - **`key.kind == KeyEventKind::Press`.** Filter to press only; crossterm also reports
   Release/Repeat on some terminals and you'll double-fire otherwise. `poll_event` does this.
@@ -204,9 +235,12 @@ clippy threshold). The reference demo already splits `layout`/`body`/`draw_list`
 - [ ] Every action reachable by palette **and** (where bound) by key; key progressions show
       a WhichKey hint.
 - [ ] Layout derived from the task (IA1); primary content gets the most space (IA2).
-- [ ] Theme is `Theme::ansi_default()`; no raw RGB; weight carries hierarchy.
-- [ ] Air over borders (V1); one accent (V2); one quiet status line (V5).
+- [ ] Theme is `Theme::ansi_default()`; no raw RGB; **two surface shades used correctly**
+      (content on `Reset`, bars/panels filled with `Bar`); weight carries hierarchy.
+- [ ] Regions are titled **panels** (thin rounded borders, active = accent); header/status
+      are filled **bars**. No heavy double-boxes, no borderless void (V1).
 - [ ] Empty states wired (IA4); `Esc` converges to Normal (I8).
 - [ ] Every TUI action is also a CLI subcommand over the Core (IA5).
 - [ ] `cargo clippy --workspace` clean under the max preset; `cargo test` green.
-- [ ] Captured a frame and confirmed it reads modern (the squint test) before declaring done.
+- [ ] Captured a frame, **rendered and eyeballed it** (distinct shades, visible panels,
+      one accent) before declaring done. Not just the bytes — the picture.

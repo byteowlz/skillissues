@@ -31,7 +31,11 @@ A Key Progression is sometimes mistaken for a Mode because it briefly reinterpre
 
 ## Layout units
 
-**Region** — a rectangular area of the screen devoted to one role (list, detail, status, filters). Regions are defined by layout, not by borders. A border is one *optional* way to separate regions; whitespace is another (and the modern default).
+**Region** — a rectangular area of the screen devoted to one role (list, detail, status, filters). A region is usually drawn inside a **Panel** (a titled, thin, rounded border) so the structure is visible. The modern byteowlz look uses thin styled borders + subtle background fills (header/status **bars**), not heavy double-boxes and not a borderless void.
+
+**Panel** — a titled container for one region: a thin border (rounded), a title in the top edge, and padding inside. Exactly one panel is **active** at a time — its border is the accent color; the rest are muted. This is the yazi/Helix/lazygit panel, not the old mmry heavy box.
+
+**Bar** — a full-width strip (header or status) with a subtle **background fill** (a dark surface token, distinct from the content background). Bars carry the app's chrome: name/context (header), counts + key hints (status). The fill is what makes them read as distinct regions.
 
 **Pane** — a Region that can receive focus and input. A three-pane layout is *one* arrangement, not the arrangement.
 
@@ -43,9 +47,11 @@ A Key Progression is sometimes mistaken for a Mode because it briefly reinterpre
 
 **Theme** — the set of token → color/weight mappings, applied identically across every screen and every tool. The Theme is the primary consistency mechanism: one family of tools shares one Theme.
 
-**Token** — a named semantic slot (`primary`, `muted`, `accent`, `surface`, `success`, `danger`) that code references instead of raw colors. Tokens let 12 tools look like one family and let a redesign happen in one place.
+**Token** — a named semantic slot (`primary`, `muted`, `accent`, `bar`, `surface`, `success`, `danger`) that code references instead of raw colors. A token serves double duty: usable as a foreground (`.fg()`) or a background fill (`.bg()`). Tokens let 12 tools look like one family and let a redesign happen in one place.
 
-**ANSI-default (the resolution rule)** — a Token resolves to a **named ANSI color** (the terminal's 16-color palette: `Red`, `Green`, `Blue`, `Cyan`, `Yellow`, `Magenta`, `Black`, `White`, `DarkGray`, `Gray`, + light variants) and `Reset` for surfaces — **never to a hardcoded RGB/hex value by default**. The *terminal* (and its theme manager — tinty, etc.) owns the actual color rendering. Consequence: the TUI automatically matches the user's light/dark theme and palette with zero plugin or config in the tool. An opt-in **override layer** may pin a Token to an RGB for a deliberately-branded tool, but that is a stated exception, not the default. *Designing with raw hex is the smell.* This is the modern default — it is why yazi/helix/lazygit look right in any terminal.
+**ANSI-default (the resolution rule)** — a Token resolves to a **named ANSI color** (the terminal's 16-color palette: `Red`, `Green`, `Blue`, `Cyan`, `Yellow`, `Magenta`, `Black`, `White`, `DarkGray`, `Gray`, + light variants) — **never to a hardcoded RGB/hex value by default**. The *terminal* (and its theme manager — tinty, etc.) owns the actual color rendering. Consequence: the TUI automatically matches the user's light/dark theme and palette with zero plugin or config in the tool. An opt-in **override layer** may pin a Token to an RGB for a deliberately-branded tool, but that is a stated exception, not the default. *Designing with raw hex is the smell.* This is the modern default — it is why yazi/helix/lazygit look right in any terminal.
+
+**The two surface shades (load-bearing)** — content floats on `Surface` (`Reset` = the terminal's bg); chrome strips and panel structure use a distinct dark fill, `Bar` (`Black`, which the terminal maps to a dark surface). **`Reset` is reserved for the content background only.** Using it for bars/panels produces a flat, structureless void. The contrast between `Surface` and `Bar` *is* the visual structure — modern TUIs get their depth from this, not from raw RGB gradients.
 
 **Weight** — bold vs dim/muted. The *primary* hierarchy mechanism. Use bold for what matters, dim for secondary. Weight and spacing carry hierarchy; color carries *state*.
 
