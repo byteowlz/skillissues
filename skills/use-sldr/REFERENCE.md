@@ -84,11 +84,28 @@ Author your own layout: an HTML file with `{{slot}}` placeholders (`{{content}}`
 
 ## Flavors
 
-A flavor is `flavor.toml` (+ optional `flavor.css` escape hatch + an `assets/` dir) under `~/sldr/flavors/<name>/`. Key sections: `[colors]` (+ `[dark_colors]`), `[typography]`, `[background]` (`background_type = "color"|"gradient"|"image"|"svg"`, `value = …`; image/svg files in `assets/` are embedded), `[shape]`/`[shadow]`/`[motion]`/`[spacing]`, `[decoration]` (`effect = "stardust"|"aurora"|"grain"|"spotlight"|"bokeh"|"grid-pan"`), `[code] syntax_theme`, a top-level `footer = "…"`, and `[[logos]]` blocks (`file`, `x`/`y`/`width` as `%`, `layouts = [...]`). Restyle a whole deck by swapping the flavor; tokens are the contract, `flavor.css` is the unbounded escape hatch (promote recurring patterns into tokens, don't add speculatively).
+A flavor is `flavor.toml` (+ optional `flavor.css` escape hatch + an `assets/` dir) under `~/sldr/flavors/<name>/`. Key sections: `[colors]` (+ `[dark_colors]`), `[typography]`, `[background]` (`background_type = "color"|"gradient"|"image"|"svg"`, `value = …`; image/svg files in `assets/` are embedded), `[shape]`/`[shadow]`/`[motion]`/`[spacing]`, `[decoration]` (`effect = "stardust"|"aurora"|"grain"|"spotlight"|"bokeh"|"grid-pan"`), `[code] syntax_theme`, a top-level `footer = "…"` with `chrome_layouts = [...]` (which layouts show the footer/source — default: framed family; `["all"]` for every layout), and `[[logos]]` blocks (`file`, `x`/`y`/`width` as `%`, `layouts = [...]`). Restyle a whole deck by swapping the flavor; tokens are the contract, `flavor.css` is the unbounded escape hatch (promote recurring patterns into tokens, don't add speculatively). For sizing/spacing/chrome knobs see **Tuning** below.
 
 The bundled flavors are installed to disk (`~/.config/sldr/flavors/`) on `sldr init` and are **editable seeds** — edit, rename, copy, or delete any of them; your library flavors in `~/sldr/flavors/` override the bundled ones by name. They are not sacred: `sldr init --force` re-installs/overwrites the bundled set, so it is always safe to hack on a copy and restore later. Read any flavor's resolved source with `sldr show flavor <name>` (origin reported on stderr).
 
 Shipped flavors: `aurora` `blueprint` `neon-noir` `terracotta` `sakura` `midnight-gold` `acid-lab` `fjord` `kraft` `letterpress` `editorial-serif` `minimal-light` `monochrome` `signal` `swiss-grid` `technical-dark` `vellum` `coral` `brutalist-mono` `neo-grid-bold` `raw-grid`. (`sldr ls flavors` for the live list.)
+
+## Tuning — sizing, spacing & chrome
+
+Two front doors: typed **`flavor.toml`** fields (discoverable, schema'd) for the common knobs, and the **`flavor.css` escape hatch** (`:root { --sldr-…: … }`, inlined after base.css so it wins) for the full set. Sizes are slide-relative: `--sldr-u` is 1% of the slide box, so everything scales with the slide, not the viewport (prefer `--sldr-u` units over `vw`/`px`).
+
+**Global scales** — resize/retighten a whole deck with one knob:
+- `[typography] type_scale = "1.1"` (or `--sldr-type-scale`) — multiplies *all* text (1.1 = 10% bigger). Default 1.
+- `[spacing] density = "compact" | "comfortable" | "spacious"` (→ `--sldr-density-scale` 0.85 / 1 / 1.15) — tightens/loosens *all* gaps and content padding. Default 1.
+- (`[typography] base_size` is legacy/advisory — use `type_scale` to resize text.)
+
+**Per-role text size** (`flavor.css`, each a `--sldr-u` multiplier; `type_scale` still applies on top):
+`--sldr-headline-size` (2.29) · `--sldr-subheadline-size` (2.08) · `--sldr-body-size` (1.6) · `--sldr-source-size` (1.1) · `--sldr-footer-size` (1.25) · `--sldr-table-size` (1.6) · `--sldr-code-size` (1.4). E.g. shrink dense tables: `:root { --sldr-table-size: 1.2; }`.
+
+**Framed geometry** (`flavor.css`, percent of the slide box):
+`--sldr-head-top` (6.3%) · `--sldr-body-top` (22.2% — *the gap below the subheadline*; lower it to pull the body up) · `--sldr-body-bottom` (90.6%, kept clear of the footer) · `--sldr-footer-x`/`-y` (4.4% / 92.5%).
+
+**Persistent bottom chrome** (footer + source) is a layout-agnostic overlay. Style it via `.sldr-chrome .sldr-footer` / `.sldr-chrome .sldr-source` (not `.sldr-framed …`). By default it shows only on the framed family; to carry it on other layouts set the flavor's `chrome_layouts = ["all"]` (or list specific layouts). Logos are controlled separately by each `[[logos]] layouts = [...]` (also accepts `["all"]`).
 
 ## Fonts — ship them in the flavor
 
