@@ -8,10 +8,13 @@ to compile under that.
 
 ## Where things live
 
-- `byteowlz-tui-kit` — `templates-repo/rust-workspace/crates/byteowlz-tui-kit`. The
+The templates repo: <https://github.com/byteowlz/templates> — local clone at
+`~/byteowlz/templates`.
+
+- `byteowlz-tui-kit` — `~/byteowlz/templates/rust-workspace/crates/byteowlz-tui-kit`. The
   mechanism crate. Depend on it; do not fork it.
-- `rust-tui` (reference demo) — `templates-repo/rust-workspace/crates/rust-tui`. A running
-  modern TUI built on the kit; copy its shape.
+- `rust-tui` (reference demo) — `~/byteowlz/templates/rust-workspace/crates/rust-tui`. A
+  running modern TUI built on the kit; copy its shape.
 - Workspace pins: `ratatui = "0.30"`, `crossterm = "0.29"` in the workspace
   `[workspace.dependencies]`. **Use the workspace pins** — this is what stops the version
   drift (trx was on 0.29, tmz on 0.30).
@@ -45,7 +48,7 @@ All examples assume `use byteowlz_tui_kit::prelude::*;`.
 
 ### theme — tokens to ANSI colors (two surface shades)
 
-`Theme::ansi_default()` maps every [`Token`](../CONTEXT.md) to a named ANSI color. The
+`Theme::ansi_default()` maps every [`Token`](CONTEXT.md) to a named ANSI color. The
 load-bearing detail: **there are two surface shades**, and using them correctly is what
 creates visual structure:
 
@@ -179,6 +182,88 @@ loop {
 }
 ```
 
+## Mouse (rule I10)
+
+Policy: **supported, never required.** Scroll-wheel scrolls the hovered list; click
+focuses a pane; click selects a row; double-click acts like `Enter`. Every mouse action
+must have a keyboard path.
+
+Kit state: `TerminalGuard::enter()` already enables `EnableMouseCapture`, but
+`poll_event` currently *drops* mouse events (normalizes them to `Tick`). Until the kit
+grows `AppEvent::Mouse(MouseEvent)`, handle crossterm's `Event::Mouse` yourself if the
+tool needs it — hit-test against the pane `Rect`s you computed in `layout()` (keep them
+on the app state). Match on `MouseEventKind::ScrollUp/ScrollDown` and
+`MouseEventKind::Down(MouseButton::Left)`; ignore drag/move noise.
+
+## Runtime & async
+
+The kit loop is synchronous on purpose — most tools need nothing more. When a tool does
+background work (network, indexing, long ops):
+
+- **One event channel.** `tokio::sync::mpsc::Sender<Msg>` cloned into tasks; the main
+  loop `select!`s (or drains after `spawn_blocking(poll_event)`) and treats a `Msg` like
+  any other event: mutate state, redraw. UI state is mutated **only** on the main loop —
+  tasks send messages, they never touch the app struct.
+- **Never block the loop.** Anything > ~50ms goes to a task; show progress via I7 (status
+  line spinner/percent updated on `Tick`), a blocking overlay only if the user truly
+  cannot proceed.
+- **Redraw on change, not every tick.** Set a `dirty` flag on state mutation; skip
+  `draw()` when clean. Spinners are the exception (they dirty on tick while active).
+- **Shelling out to `$EDITOR`:** leave the alt screen + raw mode, run the editor
+  inherited-stdio, re-enter, force a full redraw (`guard.clear()`). Do this through the
+  guard so the panic path stays intact — never raw `disable_raw_mode` calls scattered in
+  handlers.
+
+## Text input
+
+Text entry is where TUIs quietly break. Rules:
+
+- **Reuse, don't hand-roll.** Single-line → `tui-input`; multi-line → `tui-textarea`.
+  Hand-rolled cursor math gets unicode width wrong (CJK, emoji, combining marks).
+- **Bracketed paste.** Enable it and handle `Event::Paste` as one string insert —
+  otherwise a paste replays as individual keys and can trigger keybindings mid-paste.
+- **Cursor:** show the real terminal cursor in text-entry (set `frame.set_cursor_position`),
+  don't fake one with a styled cell.
+- Single-line one-shot input = an Overlay; a persistent filter/search input = the one
+  legitimate Sustained Mode (see CONTEXT.md).
+
+## Responsive layout
+
+Design for 80×24 as the floor; verify there.
+
+- **Min widths per pane.** Below a pane's minimum, collapse it — a detail pane becomes an
+  on-`Enter` Overlay, a sidebar becomes a picker. Collapsing beats squeezing.
+- **Truncation order is a decision** (V6): drop decorations first, then meta, then
+  ellipsize the title. Status-bar hints drop from the left; counts survive longest.
+- Recompute layout on `AppEvent::Resize` only; keep the computed `Rect`s on state (they
+  double as mouse hit-boxes).
+- Height matters too: at < ~15 rows, merge header into the status line.
+
+## Testing (snapshot the screens)
+
+Eyeballing (workflow step 7) is the acceptance test; snapshots make it a regression test.
+
+```rust
+use ratatui::{backend::TestBackend, Terminal};
+
+#[test]
+fn list_screen_normal() -> std::io::Result<()> {
+    let mut term = Terminal::new(TestBackend::new(100, 30))?;
+    let mut app = App::fixture();
+    term.draw(|f| draw(f, &mut app))?;
+    insta::assert_snapshot!(term.backend());
+    Ok(())
+}
+```
+
+`TestBackend` renders text + styles; `insta` snapshots diff readably in review. Required
+matrix per screen: **normal · focused/active-pane · overlay open · empty state (IA4) ·
+narrow (80×24)**. Add one per bug thereafter. Run under `cargo test` in CI; review
+snapshot diffs like code — a changed frame is a changed UI.
+
+What snapshots do **not** catch: color rendering on a real terminal (light themes,
+`NO_COLOR`) — that stays a manual check (V8).
+
 ## Module layout (copy from `rust-tui`)
 
 A modern `<tool>-tui` stays small by delegating to the kit:
@@ -242,5 +327,11 @@ clippy threshold). The reference demo already splits `layout`/`body`/`draw_list`
 - [ ] Empty states wired (IA4); `Esc` converges to Normal (I8).
 - [ ] Every TUI action is also a CLI subcommand over the Core (IA5).
 - [ ] `cargo clippy --workspace` clean under the max preset; `cargo test` green.
+- [ ] Snapshot tests exist (TestBackend + insta) for normal · focus · overlay · empty ·
+      80×24 states of each screen.
+- [ ] Usable at 80×24; panes collapse instead of squeezing; checked on a light terminal
+      theme and with `NO_COLOR` (V8).
+- [ ] Mouse: scroll + click-focus + click-select work; nothing is mouse-only (I10).
+- [ ] Errors surfaced per I11 (status line `Danger` / blocking overlay); no panics.
 - [ ] Captured a frame, **rendered and eyeballed it** (distinct shades, visible panels,
       one accent) before declaring done. Not just the bytes — the picture.

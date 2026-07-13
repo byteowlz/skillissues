@@ -13,7 +13,9 @@ and the concrete shape — so you can pattern-match a new tool to the closest ca
 - **2 panes**, not 3. Primary object = the list; what you scan = the list; what you act on
   = a selected item's detail. There is no third role, so no third pane.
 - Layout: list (45%) `|` detail (55%). The detail is what you read, so it gets more space.
-- Air over borders (V1): `Block::default().padding(Padding::new(1,1,1,0))`, no `Borders`.
+- Structure via panels + fills (V1): each pane is a titled rounded-border panel with
+  `Padding::new(1,1,1,0)` inside; header/status are `Bar`-filled strips. Not heavy
+  double-boxes, not a borderless void.
 - Hierarchy (V3): item title bold-`Primary`, meta `Muted`; active row `theme.focus()`.
 
 **Actions** (data — note the key progressions, no modes):
@@ -36,7 +38,8 @@ nav.up          k         (direct)
 **Key Progression** with a WhichKey hint. One mode, eleven actions. (Contrast: the old
 mmry shape used ~6 modes for fewer actions.)
 
-**Result:** this is exactly the reference `rust-tui` in `templates-repo/rust-workspace`.
+**Result:** this is exactly the reference `rust-tui` in the templates repo
+(<https://github.com/byteowlz/templates>, local `~/byteowlz/templates/rust-workspace`).
 Copy it.
 
 ## Example 2 — Migrating mmry's 13 modes down to ~2
@@ -59,7 +62,7 @@ Copy it.
 | `CategorySelect` | Overlay picker | one-shot selection |
 | `Delete` / `DeleteMultiple` | Confirm Overlay | one-shot yes/no |
 | `Help` | Help Overlay | transient |
-| `Search` | **kept** as sustained Sustained Mode | text-entry surface (legitimate) |
+| `Search` | **kept** as a Sustained Mode | text-entry surface (legitimate) |
 | `Normal` | **kept** | the home state |
 
 **After:** `Normal` + `Search` (2 sustained modes) + a stack of transient Overlays + Key

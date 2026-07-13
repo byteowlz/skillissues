@@ -1,39 +1,31 @@
 ---
 name: tui-design
-description: Design and build modern, ergonomic, consistent TUIs for byteowlz tools (Rust + ratatui). Use when creating or overhauling a TUI - layout/IA, the Mode-vs-Key-Progression-vs-Overlay interaction model, the ANSI-token theme, command palette + chords, or reaching for the byteowlz-tui-kit crate.
+description: Design and build modern, ergonomic, consistent TUIs. Stack-agnostic judgment layer (layout/IA, the Mode-vs-Key-Progression-vs-Overlay interaction model, ANSI-token theming, palette + chords) with a Rust + ratatui binding via the byteowlz-tui-kit crate. Use when creating or overhauling any TUI, in any language.
 ---
 
-# Designing byteowlz TUIs
+# Designing modern TUIs
 
 ## When to use this skill
 
-Use when designing or implementing any **Rust + ratatui** TUI for a byteowlz tool — a new
-`<tool>-tui` crate, a new screen in an existing one, or an overhaul of an ugly/cluttered
-one. The goal is a family of TUIs that are **modern** (yazi ergonomics + Helix/opencode
-looks), **ergonomic**, and **consistent** with each other.
+Use when designing or implementing **any TUI** — a new `<tool>-tui`, a new screen in an
+existing one, or an overhaul of an ugly/cluttered one. The goal is TUIs that are
+**modern** (yazi ergonomics + Helix/opencode looks), **ergonomic**, and **consistent**
+with each other.
 
-This skill is the **judgment** layer. The **mechanism** lives in the `byteowlz-tui-kit`
-crate (in `templates-repo/rust-workspace`) — reach for it instead of re-implementing
-widgets/theme/dispatch.
+The judgment layer (this file + [CONTEXT.md](CONTEXT.md)) is **stack-agnostic** — the
+rules apply equally to ratatui, Textual, bubbletea, or Ink. The **mechanism binding**
+for the default byteowlz stack (Rust + ratatui) is the `byteowlz-tui-kit` crate in the
+templates repo — <https://github.com/byteowlz/templates>, local clone
+`~/byteowlz/templates` (`rust-workspace/crates/byteowlz-tui-kit`). In Rust, reach for it
+instead of re-implementing widgets/theme/dispatch. On another stack, apply the same
+rules with that stack's native equivalents.
 
 > Read [CONTEXT.md](CONTEXT.md) first — it defines the vocabulary. The single most
 > important term is **Mode vs Key Progression vs Overlay**, all ways to reach an
 > **Action**. Confusing them is the root cause of mode explosion.
 
-## The mental model — the leverage
-
-The whole skill rests on one cut (your own `bitter-lesson-proof-project` rule):
-
-- **Judgment → delegate it.** Layout choice, information hierarchy, "is this a mode or a
-  command?" — these are taste. Capture them as *rules here*, don't hard-code them as
-  per-tool heuristics.
-- **Mechanism → build/normalize it once.** The theme tokens, the command palette, the
-  prefix router, the terminal lifecycle — these live in `byteowlz-tui-kit` and are
-  reused across every tool.
-
-So: **an Action is data, not a mode. The kit renders; this skill decides.** The patterns
-below are the decisions; `byteowlz-tui-kit` is the deterministic substrate that makes them
-cheap.
+> **Judgment belongs in reusable rules; mechanism belongs in a shared library. An Action
+> is data, not a mode.** This skill decides; the stack-native kit renders.
 
 ## Workflow (do this order)
 
@@ -57,7 +49,10 @@ cheap.
    widgets *as data over the kit*, not by forking it. See [REFERENCE.md](REFERENCE.md).
 5. **Keep the TUI one surface over the Core.** Every TUI action is also a CLI subcommand
    over the same Core. The TUI is a view, never the only path (rule IA5).
-6. **Verify it renders modern — actually look at the frame.** Run it, capture the frame,
+6. **Snapshot the screens.** Add backend-level snapshot tests (ratatui `TestBackend` +
+   `insta`, or the stack's equivalent) for normal, focused, overlay, empty, and 80×24
+   states. See [REFERENCE.md](REFERENCE.md) → Testing.
+7. **Verify it renders modern — actually look at the frame.** Run it, capture the frame,
    and check it against the rules: are there distinct surface shades (bar fills vs
    content)? titled panels with borders? one accent on the active panel/focus row?
    **Capturing the bytes is not enough** — render and eyeball it. The reference demo was
@@ -89,6 +84,11 @@ purpose, with a stated reason — never by neglect.
   *(kills: broken layout)*
 - **V7 — One Theme as tokens, shared across every tool.** Code references tokens, never raw
   colors. *This is the consistency layer.* *(kills: cross-tool inconsistency)*
+- **V8 — Degrade gracefully.** Respect `NO_COLOR` (weight/spacing must carry the hierarchy
+  alone); look right on light *and* dark terminal themes (ANSI tokens give you this for
+  free — verify it); glyphs beyond ASCII need a plain fallback (no nerd-font requirement);
+  no tty → the CLI surface is the answer (IA5), never a broken TUI. *(kills: works-on-my-
+  terminal)*
 
 ### Interaction (why ergonomics are bad / modes are a smell)
 
@@ -113,6 +113,14 @@ purpose, with a stated reason — never by neglect.
   *transient* prefix states with an on-demand WhichKey hint — the keyboard-fast discovery
   path that coexists with the palette. This is the nvim muscle-memory you want, and it is
   *not* the mode-explosion smell. *(adds: power-user speed without mode cost)*
+- **I10 — Mouse is supported, never required.** Scroll-wheel scrolls the hovered list,
+  click focuses a pane, click selects a row, double-click = `Enter`. Every mouse action
+  has a keyboard path; no mouse-only affordances. *(adds: casual-user ergonomics without
+  keyboard cost)*
+- **I11 — Errors have one home each.** Recoverable/background errors → status line in the
+  `Danger` token (ephemeral, like I7); blocking errors that need a decision → a Confirm/
+  message Overlay; never a panic, never a corrupted frame, never silence. *(kills:
+  invisible failures, terminal-wrecking crashes)*
 
 ### Information architecture (why layout is bad)
 
@@ -143,4 +151,6 @@ deliberately branded tool. *Designing with raw hex is the smell.* See
   reference `rust-tui` demo, gotchas, and a per-tool build checklist.
 - [EXAMPLES.md](EXAMPLES.md) — worked designs: a list+detail tool, migrating mmry's 13
   modes down to ~2, and authoring a key-progression set.
-- `templates-repo/rust-workspace/crates/rust-tui/` — a running reference built on the kit.
+- `rust-tui` — a running reference built on the kit:
+  <https://github.com/byteowlz/templates> → `rust-workspace/crates/rust-tui`
+  (local: `~/byteowlz/templates/rust-workspace/crates/rust-tui`).
