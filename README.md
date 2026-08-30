@@ -5,6 +5,7 @@ agent skills for byteowlz tools and beyond.
 ## Skills
 <!-- SKILLS:START -->
 - [`bitter-lesson-proof-project`](skills/bitter-lesson-proof-project/SKILL.md) - Design or audit a software tool so its value survives better models.
+- [`cmfy-cli`](skills/cmfy-cli/SKILL.md) - |
 - [`design-probe-gallery`](skills/design-probe-gallery/SKILL.md) - Build standalone design-probe galleries to explore UI variants BEFORE touching production code.
 - [`ears-dictionary-suggestions`](skills/ears-dictionary-suggestions/SKILL.md) - Analyze eaRS dictation transcript JSONL logs and suggest dictionary replacements.
 - [`oqto-apps`](skills/oqto-apps/SKILL.md) - Author user/agent-creatable Oqto apps per ADR-0038 — workspace-source apps (manifest + declarative UI data and/or self-contained sandboxed-web bundle) that the host discovers at runtime.
