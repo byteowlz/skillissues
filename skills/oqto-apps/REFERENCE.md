@@ -29,63 +29,52 @@ is provisionally TOML pending the format decision ADR-0027 deferred; the
 
 ## Files capability v0.1 (contract — tracked as oqto-xcgg)
 
-```ts
-interface OqtoFileRef {
-  id: string;        // opaque, stable within the binding scope
-  name: string;
-  mime: string;
-  size: number;
-  version: string;   // opaque version token; changes on every write
-}
+Canonical package: `~/byteowlz/oqto-app-sdk/` (`@byteowlz/oqto-app-sdk`).
 
-interface OqtoWriteOptions { expectedVersion?: string }
+```ts
+type OqtoFileRef = string & Opaque;      // stable resource identity
+type OqtoFileVersion = string & Opaque;  // freshness token; equality only
+
+type OqtoFileWriteResult =
+  | { ok: true; stat: OqtoFileStat }
+  | { ok: false; reason: "conflict"; currentVersion: OqtoFileVersion };
 
 interface OqtoFilesCapability {
-  pick(opts?): Promise<OqtoFileRef | null>;
-  pickMultiple(opts?): Promise<OqtoFileRef[]>;
-  read(ref): Promise<{ bytes: Blob; ref: OqtoFileRef }>;
-  write(ref, data: Blob, opts?: OqtoWriteOptions): Promise<OqtoFileRef>;
-  writeNew(name: string, data: Blob): Promise<OqtoFileRef>;
-  stat(ref): Promise<OqtoFileRef>;                      // no bytes
-  watch(ref, cb: (ref: OqtoFileRef) => void): Promise<() => void>;
+  pick(opts?): Promise<readonly OqtoFileDescriptor[]>;
+  read(ref): Promise<OqtoFileContents>;  // Uint8Array + current stat/version
+  stat(ref): Promise<OqtoFileStat>;      // no bytes
+  write(ref, bytes: Uint8Array, opts: { expectedVersion: OqtoFileVersion }):
+    Promise<OqtoFileWriteResult>;
+  watch(ref, cb: (change: OqtoFileChange) => void): Promise<() => void>;
 }
 
-// Conditional write conflict:
-class OqtoConflictError extends Error {
-  currentVersion: string;
-  current: OqtoFileRef;   // re-read and rebase from here
-}
-
-// Host-driven open ("Open with <app>", bound tab):
 interface OqtoHostContext {
   instanceId: string;
-  bound?: { ref: OqtoFileRef; role: "document" };
+  capabilities: readonly OqtoCapability[]; // granted, not merely requested
+  bound?: { ref: OqtoFileRef; role: "document"; access: "read" | "readwrite" };
 }
 ```
 
-Semantics: `version` is opaque — treat as a token, round-trip it. `write` with
-`expectedVersion` performs an atomic host-side replace and rejects with
-`OqtoConflictError` on mismatch; without it the write is last-writer-wins
-(never use for documents other agents edit). `stat` is the cheap staleness
-check; `watch` replaces polling where the host supports events. `read` returns
-the current version alongside the bytes. The bound resource arrives in host
-context at mount — read it via `files.read(host.context.bound.ref)`. Refs are
-opaque (work-directory id + policy-checked relative reference internally);
-never construct or parse them.
+Refs and versions are separate opaque tokens. Apps may persist refs in the same
+Instance's KV but never construct or parse them; the Host revalidates scope on
+every use. There is deliberately no unconditional document write. A conflict is
+an expected result: re-read and apply the App's domain-specific rebase policy.
+`stat` is the polling fallback; `watch` emits coalescible version-only changes.
+Host-driven “Open with” supplies `host.context.bound` at mount.
 
 ## Authoring rules (full)
 
-1. Use the mini-apps SDK (`frontend/mini-apps/sdk/`): `defineOqtoApp()` +
-   `useOqtoHost()`. It is promise-based, serializable, and bridge-ready — the same
-   app code runs standalone today and in the sandboxed frame later.
-2. Reach the outside world **only** through the host capabilities on `useOqtoHost()`
-   (`files`, `kv`, `notifications`, `theme`, `user`). No `fetch` to Oqto, no
-   direct DOM/window escapes, no imports from the Oqto shell or its stores.
-3. Theme via the `theme` capability (`Base24Scheme`/`ThemeMode`), never hardcoded
-   colors. Derive from scheme tokens (see `mini-apps/theming/`).
-4. Capabilities you use must be listed in `requestedCapabilities` and in the
-   manifest. Extending the capability set means editing `sdk/host.ts` **and**
-   `sdk/mock-host.ts` together — host contract and mock move in lockstep.
+1. Import `connectOqtoApp()` from `@byteowlz/oqto-app-sdk`; React Apps may use the
+   optional `@byteowlz/oqto-app-sdk/react` provider. Do not duplicate manifest
+   metadata in runtime code.
+2. Reach the outside world **only** through granted Host capabilities (`files`,
+   `kv`, `notifications`, `theme`). No `fetch` to Oqto, direct DOM/window escape,
+   shell/store import, credential, path, mount, or control socket.
+3. Consume theme snapshots/tokens from the read-only `theme` capability; do not
+   hardcode a host scheme or mutate Oqto appearance.
+4. List used capabilities in `requested_capabilities`; that request is never a
+   grant. Test with `@byteowlz/oqto-app-sdk/testing`, including external-write
+   conflicts and bridge disconnects.
 5. The bundle is self-contained: no external network, no CDN scripts. CSP defaults
    to packaged-bundle-only.
 6. Declarative payloads carry no logic — data only, validated against the

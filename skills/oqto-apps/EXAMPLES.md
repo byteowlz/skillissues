@@ -33,50 +33,46 @@ max_bytes = 2_000_000
 
 Unknown fields are preserved by the resolver — never strip them.
 
-## Sandboxed-web app skeleton (mini-apps SDK)
+## Sandboxed-web app skeleton (`@byteowlz/oqto-app-sdk`)
 
-`src/index.ts`:
-
-```ts
-import { defineOqtoApp } from "@/mini-apps/sdk";
-import { QuotaExplorer } from "./QuotaExplorer";
-
-export const quotaExplorerApp = defineOqtoApp({
-  id: "quota-explorer",
-  title: "Quota Explorer",
-  description: "Inspect per-work-directory disk quota",
-  requestedCapabilities: ["kv", "theme", "notifications"],
-  component: QuotaExplorer,
-});
-```
-
-`src/QuotaExplorer.tsx` — reach the world only via `useOqtoHost()`:
+`src/main.tsx` — runtime metadata comes from the Host, not duplicated code:
 
 ```tsx
-import { useOqtoHost } from "@/mini-apps/sdk";
-import { useEffect, useState } from "react";
+import { connectOqtoApp } from "@byteowlz/oqto-app-sdk";
+import { OqtoHostProvider } from "@byteowlz/oqto-app-sdk/react";
+import { createRoot } from "react-dom/client";
+import { QuotaExplorer } from "./QuotaExplorer";
+
+const host = await connectOqtoApp();
+const root = document.getElementById("root");
+if (!root) throw new Error("Missing #root");
+createRoot(root).render(
+  <OqtoHostProvider host={host}><QuotaExplorer /></OqtoHostProvider>,
+);
+```
+
+`src/QuotaExplorer.tsx` — reach the world only through granted capabilities:
+
+```tsx
+import { useOqtoHost } from "@byteowlz/oqto-app-sdk/react";
+import { useState } from "react";
 
 export function QuotaExplorer() {
   const host = useOqtoHost();
-  const [lastRun, setLastRun] = useState<string | null>(null);
-
-  useEffect(() => {
-    host.kv.get<string>("lastRun").then(setLastRun);
-  }, [host]);
+  const [picked, setPicked] = useState("none");
 
   return (
-    <main style={{ padding: 16 }}>
+    <main>
       <h1>Quota Explorer</h1>
-      <p>Last run: {lastRun ?? "never"}</p>
-      <button
-        onClick={async () => {
-          const ref = await host.files.pick({ accept: "text/*" });
-          if (!ref) return;
-          await host.kv.set("lastRun", ref.name);
-          host.notifications.notify(`Picked ${ref.name}`, "success");
-          setLastRun(ref.name);
-        }}
-      >
+      <p>Picked: {picked}</p>
+      <button onClick={async () => {
+        if (!host.files || !host.kv) return;
+        const [file] = await host.files.pick({ accept: ["text/*"] });
+        if (!file) return;
+        await host.kv.set("lastOpenRef", file.ref);
+        await host.notifications?.notify({ level: "success", message: `Picked ${file.label}` });
+        setPicked(file.label);
+      }}>
         Pick usage report
       </button>
     </main>
@@ -84,16 +80,8 @@ export function QuotaExplorer() {
 }
 ```
 
-Register it for the standalone workbench (`frontend/mini-apps/workbench/registry.ts`):
-
-```ts
-import { quotaExplorerApp } from "@/mini-apps/quota-explorer";
-
-export const standaloneApps: ReadonlyArray<OqtoApp> = [
-  // ...existing apps
-  quotaExplorerApp,
-];
-```
+No shell registry step exists: Oqto discovers the manifest/bundle at runtime. For
+standalone tests, use `createTestHost()` from `@byteowlz/oqto-app-sdk/testing`.
 
 ## Declarative payload (`ui/entry.json`, data only)
 
@@ -118,8 +106,8 @@ export const standaloneApps: ReadonlyArray<OqtoApp> = [
 
 - [ ] `schema` present; TOML, not YAML
 - [ ] `id` stable and kebab-case; `version` semver
-- [ ] every capability the code touches is declared (check `requestedCapabilities`
-      against actual `host.*` usage)
+- [ ] every capability the code touches is requested in manifest
+      `requested_capabilities` (requests remain separate from grants)
 - [ ] `bindings` is the narrowest scope that contains all data
 - [ ] `bundle/` is self-contained — grep for `http://`, `https://`, `fetch(` against
       non-packaged origins

@@ -14,10 +14,10 @@ never hidden state or installed blobs.
 ## Quick start
 
 ```bash
-cd frontend
-bun run typecheck:oqto-ui && bunx biome check mini-apps/<app>
-bunx vitest run && bun run build
-# open http://localhost:3000/workbench.html — mock host, real UI, no Oqto login
+cd <workdir>/oqto-apps/<app-id>
+pnpm install
+pnpm typecheck && pnpm test && pnpm build
+# use @byteowlz/oqto-app-sdk/testing for deterministic host/concurrency tests
 ```
 
 App skeleton, manifest example, and sanity checklist: see [EXAMPLES.md](EXAMPLES.md).
@@ -40,14 +40,13 @@ filesystem roots and the resolver are specified in ADR-0038 but not implemented
 
 ## Hard rules
 
-1. Only surface to the outside world: `useOqtoHost()` capabilities (`files`, `kv`,
-   `notifications`, `theme`, `user`). No `fetch` to Oqto, no DOM/window escapes, no
-   imports from the Oqto shell or its stores.
-2. Theme via the `theme` capability (`Base24Scheme`/`ThemeMode`) — never hardcoded
-   colors.
-3. Capabilities used = capabilities declared (`requestedCapabilities` + manifest).
-   Extending the set means editing `sdk/host.ts` **and** `sdk/mock-host.ts`
-   together.
+1. Only surface to the outside world: `connectOqtoApp()` and its granted
+   capabilities (`files`, `kv`, `notifications`, `theme`). No `fetch` to Oqto,
+   DOM/window escape, shell/store import, credential, path, mount, or socket.
+2. Theme via read-only Host theme snapshots/tokens — never mutate or hardcode Oqto
+   appearance.
+3. Capabilities used must appear in manifest `requested_capabilities`; a request
+   is not a grant. Test with `@byteowlz/oqto-app-sdk/testing`.
 4. Bundles are self-contained (CSP: packaged bundle only, no CDN, no network).
 5. Declarative payloads are data only, validated against the advertised profile,
    with a declared fallback.
@@ -55,16 +54,18 @@ filesystem roots and the resolver are specified in ADR-0038 but not implemented
 
 ## Verification loop
 
-The mock host backs everything — no running Oqto required. Run the quick-start
-gates, then the screenshot loop at real viewports (1440×900, 390×844) against
-`/workbench.html`, same as shell parity work. App tests live in `frontend/tests/`.
+The SDK test Host exercises the real MessageChannel protocol — no running Oqto
+required. Test host-driven bound resources, external-writer conflicts, watcher
+coalescing, missing grants, and disconnects. Then run the App's own preview and
+screenshot loop at real viewports (1440×900, 390×844).
 
 ## Boundary — do not fabricate
 
 The runtime side of ADR-0038 is **designed, not implemented**: filesystem
-discovery/resolver, Installation/Instance/binding records, capability grants, the
-Gate, bridge transport. If your task seems to require those, stop and say so —
-track against `oqto-171p` — instead of inventing loader code, grant APIs, or
+discovery/resolver, Installation/Instance/binding records, live capability grants,
+the Gate, and OqtoUI iframe host. The SDK and Bridge protocol exist locally in
+`~/byteowlz/oqto-app-sdk`; the live adapters do not. If your task requires those,
+stop and say so — track against `oqto-efbj` / `oqto-xcgg` — instead of inventing loader code, grant APIs, or
 manifest fields the host will never read. When asked how the app gets "installed"
 today, the honest answer is: it doesn't; it runs standalone via the workbench and
 is structured for discovery.
@@ -76,6 +77,6 @@ Examples, manifest, and sanity checklist: [EXAMPLES.md](EXAMPLES.md).
 
 ## Open questions — ask, don't assume
 
-- Binding kind and capability set beyond the SDK's five (ADR-0038 lists more).
+- Binding kind and capability set beyond the SDK's initial four (ADR-0038 lists more).
 - Whether the app needs a Sidecar (server-side execution — ADR-0027, gated).
 - Catalog/distribution mechanics (deferred in ADR-0027).
