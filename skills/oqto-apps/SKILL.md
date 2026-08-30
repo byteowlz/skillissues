@@ -5,19 +5,11 @@ description: Author user/agent-creatable Oqto apps per ADR-0038 — workspace-so
 
 # Authoring Oqto apps (ADR-0038)
 
-## Scope: the discoverable app model, nothing else
+## What you are building
 
-Oqto has **two** app surfaces. This skill covers only the second:
-
-| | In-bundle registry apps | **Discoverable apps (this skill)** |
-|---|---|---|
-| Where they live | `frontend/apps/`, compiled into the shell bundle | Workspace/work-directory source, discovered at runtime |
-| Contract | `frontend/lib/app-registry.ts` (`AppDefinition`) | ADR-0038 manifest + presentations |
-| Who writes them | Shell developers | **Users and agents** |
-| Status | Shipped | Authoring target; runtime resolver pending (`oqto-171p`) |
-
-Do not register discoverable apps in `app-registry`, and do not import `app-registry`
-from an app: a discoverable app must run without the Oqto shell.
+An **Oqto app** is workspace source that the host discovers at runtime:
+a manifest, app source, tests, and relative assets — ordinary inspectable files,
+never hidden state or installed blobs.
 
 ## The contract (ADR-0038, accepted 2026-08-09)
 
@@ -68,9 +60,8 @@ filesystem roots and the resolver are specified in ADR-0038 but not implemented
    `useOqtoHost()`. It is promise-based, serializable, and bridge-ready — the same
    app code runs standalone today and in the sandboxed frame later.
 2. Reach the outside world **only** through the host capabilities on `useOqtoHost()`
-   (`files`, `kv`, `notifications`, `theme`, `user`). No `fetch` to Oqto, no direct
-   DOM/window escapes, no imports from `@/lib/app-registry`, `@/src/oqto-ui`, or
-   Oqto stores.
+   (`files`, `kv`, `notifications`, `theme`, `user`). No `fetch` to Oqto, no
+   direct DOM/window escapes, no imports from the Oqto shell or its stores.
 3. Theme via the `theme` capability (`Base24Scheme`/`ThemeMode`), never hardcoded
    colors. Derive from scheme tokens (see `mini-apps/theming/`).
 4. Capabilities you use must be listed in `requestedCapabilities` and in the
