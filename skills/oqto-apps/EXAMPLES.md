@@ -10,7 +10,12 @@ version = "0.1.0"
 title = { en = "Quota Explorer", de = "Quota-Explorer" }
 description = "Inspect per-work-directory disk quota"
 
+# TOML gotcha: every top-level key MUST come before the first [table] header,
+# or it silently nests into that table.
 presentations = ["declarative", "sandboxed-web"]
+requested_capabilities = ["kv", "theme", "notifications"]
+bindings = ["work-directory"]         # narrowest binding containing all data
+default_binding = "work-directory"
 
 [presentation.declarative]
 profile = "oqto/tables-v1"            # versioned profile; host advertises support
@@ -19,12 +24,7 @@ entry = "ui/entry.json"               # validated UI data (JSON)
 [presentation.sandboxed-web]
 entry = "bundle/index.html"           # self-contained; CSP: packaged bundle only
 
-requested_capabilities = ["kv", "theme", "notifications"]
-bindings = ["work-directory"]         # narrowest binding containing all data
-default_binding = "work-directory"
-
-# Hot-switching across fidelity thresholds requires compatible state.
-[instance_state]
+[instance_state]                      # hot-switching across fidelity thresholds
 versioned = true
 
 [assets]
@@ -126,3 +126,5 @@ export const standaloneApps: ReadonlyArray<OqtoApp> = [
 - [ ] declarative payloads validate against the declared profile; a fallback is
       declared if the profile may be unavailable
 - [ ] unknown manifest fields left intact
+- [ ] all top-level keys appear **before** the first `[table]` header (TOML nests
+      anything after a header into that table)
