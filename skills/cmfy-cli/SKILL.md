@@ -1,11 +1,6 @@
 ---
 name: cmfy-cli
-description: |
-  Run and manage ComfyUI workflows via the cmfy command-line tool, including
-  local workflows, SSH-imported workflows, queue inspection, and async job control.
-  This skill should be used when users ask to run ComfyUI workflows, inspect
-  workflow inputs, manage aliases, discover or import workflows from remote hosts,
-  check queue state, or monitor and cancel jobs from the terminal.
+description: Run and manage ComfyUI workflows via the cmfy command-line tool, including local workflows, SSH-imported workflows, queue inspection, and async job control.This skill should be used when users ask to run ComfyUI workflows, inspect workflow inputs, manage aliases, discover or import workflows from remote hosts, check queue state, or monitor and cancel jobs from the terminal.
 ---
 
 # cmfy CLI
@@ -99,7 +94,7 @@ cmfy accepts either of these workflow file shapes:
 }
 ```
 
-2. Wrapper with prompt key:
+1. Wrapper with prompt key:
 
 ```json
 {
