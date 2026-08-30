@@ -27,6 +27,52 @@ is provisionally TOML pending the format decision ADR-0027 deferred; the
 `schema` key marks compatibility.
 
 
+## Files capability v0.1 (contract — tracked as oqto-xcgg)
+
+```ts
+interface OqtoFileRef {
+  id: string;        // opaque, stable within the binding scope
+  name: string;
+  mime: string;
+  size: number;
+  version: string;   // opaque version token; changes on every write
+}
+
+interface OqtoWriteOptions { expectedVersion?: string }
+
+interface OqtoFilesCapability {
+  pick(opts?): Promise<OqtoFileRef | null>;
+  pickMultiple(opts?): Promise<OqtoFileRef[]>;
+  read(ref): Promise<{ bytes: Blob; ref: OqtoFileRef }>;
+  write(ref, data: Blob, opts?: OqtoWriteOptions): Promise<OqtoFileRef>;
+  writeNew(name: string, data: Blob): Promise<OqtoFileRef>;
+  stat(ref): Promise<OqtoFileRef>;                      // no bytes
+  watch(ref, cb: (ref: OqtoFileRef) => void): Promise<() => void>;
+}
+
+// Conditional write conflict:
+class OqtoConflictError extends Error {
+  currentVersion: string;
+  current: OqtoFileRef;   // re-read and rebase from here
+}
+
+// Host-driven open ("Open with <app>", bound tab):
+interface OqtoHostContext {
+  instanceId: string;
+  bound?: { ref: OqtoFileRef; role: "document" };
+}
+```
+
+Semantics: `version` is opaque — treat as a token, round-trip it. `write` with
+`expectedVersion` performs an atomic host-side replace and rejects with
+`OqtoConflictError` on mismatch; without it the write is last-writer-wins
+(never use for documents other agents edit). `stat` is the cheap staleness
+check; `watch` replaces polling where the host supports events. `read` returns
+the current version alongside the bytes. The bound resource arrives in host
+context at mount — read it via `files.read(host.context.bound.ref)`. Refs are
+opaque (work-directory id + policy-checked relative reference internally);
+never construct or parse them.
+
 ## Authoring rules (full)
 
 1. Use the mini-apps SDK (`frontend/mini-apps/sdk/`): `defineOqtoApp()` +
