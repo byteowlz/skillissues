@@ -13,6 +13,7 @@ agent skills for byteowlz tools and beyond.
 - [`home-assistant-hmr-cli`](skills/home-assistant-hmr-cli/SKILL.md) - |
 - [`kyz`](skills/kyz/SKILL.md) - Use kyz secrets manager for secure credential storage and retrieval in agent workflows.
 - [`oqto-apps`](skills/oqto-apps/SKILL.md) - Author user/agent-creatable Oqto apps per ADR-0038 — workspace-source apps (manifest + declarative UI data and/or self-contained sandboxed-web bundle) that the host discovers at runtime.
+- [`oqto-setup`](skills/oqto-setup/SKILL.md) - Guide users through Oqto platform setup, troubleshoot installation issues, and verify deployment configuration.
 - [`tui-design`](skills/tui-design/SKILL.md) - Design and build modern, ergonomic, consistent TUIs.
 - [`use-sldr`](skills/use-sldr/SKILL.md) - Create, build, and share presentations with the sldr CLI — modular markdown slides, swappable layouts and flavors, self-contained HTML output.
 - [`wiki-workflow`](skills/wiki-workflow/SKILL.md) - Wiki knowledge architecture for shared markdown repos.
