@@ -5,6 +5,7 @@ agent skills for byteowlz tools and beyond.
 ## Skills
 <!-- SKILLS:START -->
 - [`bitter-lesson-proof-project`](skills/bitter-lesson-proof-project/SKILL.md) - Design or audit a software tool so its value survives better models.
+- [`castr-podcast`](skills/castr-podcast/SKILL.md) - "Manage podcast episodes, scripts, sources, and comments in CastR via its REST API.
 - [`cmfy-cli`](skills/cmfy-cli/SKILL.md) - Run and manage ComfyUI workflows via the cmfy command-line tool, including local workflows, SSH-imported workflows, queue inspection, and async job control.
 - [`design-probe-gallery`](skills/design-probe-gallery/SKILL.md) - Build standalone design-probe galleries to explore UI variants BEFORE touching production code.
 - [`ears-dictionary-suggestions`](skills/ears-dictionary-suggestions/SKILL.md) - Analyze eaRS dictation transcript JSONL logs and suggest dictionary replacements.
