@@ -10,6 +10,7 @@ agent skills for byteowlz tools and beyond.
 - [`design-probe-gallery`](skills/design-probe-gallery/SKILL.md) - Build standalone design-probe galleries to explore UI variants BEFORE touching production code.
 - [`drftr`](skills/drftr/SKILL.md) - Use this skill whenever a design folder (a directory containing design.
 - [`ears-dictionary-suggestions`](skills/ears-dictionary-suggestions/SKILL.md) - Analyze eaRS dictation transcript JSONL logs and suggest dictionary replacements.
+- [`home-assistant-hmr-cli`](skills/home-assistant-hmr-cli/SKILL.md) - |
 - [`oqto-apps`](skills/oqto-apps/SKILL.md) - Author user/agent-creatable Oqto apps per ADR-0038 — workspace-source apps (manifest + declarative UI data and/or self-contained sandboxed-web bundle) that the host discovers at runtime.
 - [`tui-design`](skills/tui-design/SKILL.md) - Design and build modern, ergonomic, consistent TUIs.
 - [`use-sldr`](skills/use-sldr/SKILL.md) - Create, build, and share presentations with the sldr CLI — modular markdown slides, swappable layouts and flavors, self-contained HTML output.
