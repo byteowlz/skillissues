@@ -17,6 +17,7 @@ agent skills for byteowlz tools and beyond.
 - [`oqto-apps`](skills/oqto-apps/SKILL.md) - Author user/agent-creatable Oqto apps per ADR-0038 — workspace-source apps (manifest + declarative UI data and/or self-contained sandboxed-web bundle) that the host discovers at runtime.
 - [`oqto-setup`](skills/oqto-setup/SKILL.md) - Guide users through Oqto platform setup, troubleshoot installation issues, and verify deployment configuration.
 - [`sttmchn`](skills/sttmchn/SKILL.md) - Model interconnected state machines in TOML for system design and test case generation.
+- [`trx`](skills/trx/SKILL.md) - Use trx, the minimal git-backed issue tracker, to create, query, and manage issues, including epic/child workflows and dependencies.
 - [`tui-design`](skills/tui-design/SKILL.md) - Design and build modern, ergonomic, consistent TUIs.
 - [`use-sldr`](skills/use-sldr/SKILL.md) - Create, build, and share presentations with the sldr CLI — modular markdown slides, swappable layouts and flavors, self-contained HTML output.
 - [`wiki-workflow`](skills/wiki-workflow/SKILL.md) - Wiki knowledge architecture for shared markdown repos.
