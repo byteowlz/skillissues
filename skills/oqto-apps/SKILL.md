@@ -1,6 +1,6 @@
 ---
 name: oqto-apps
-description: Author user/agent-creatable Oqto apps per ADR-0038 — workspace-source apps (manifest + declarative UI data and/or self-contained sandboxed-web bundle) that the host discovers at runtime. Use when creating, reviewing, or debugging an Oqto app, writing an oqto-app manifest, or wiring app capabilities (files, kv, theme, notifications). Covers the sandboxed-web and declarative presentations; never YAML.
+description: Author user/agent-creatable Oqto apps per ADR-0038 — runtime-discovered workspace Apps with agent-editable file/CLI state, a TOML manifest, and declarative and/or sandboxed-web presentation. Use when creating, reviewing, or debugging an Oqto app, manifest, capability integration, live file workflow, or semantic CLI/operation surface. Never YAML.
 ---
 
 # Authoring Oqto apps (ADR-0038)
@@ -11,10 +11,23 @@ An **Oqto app** is workspace source that the host discovers at runtime:
 a manifest, app source, tests, and relative assets — ordinary inspectable files,
 never hidden state or installed blobs.
 
+## Agent-editable by default
+
+Every App must expose a simple durable state plane that backend agents can edit
+without driving its UI. Prefer documented files plus live reload. Add a schema-
+validated JSON CLI/operation table only when validation, transactions, or derived
+behavior justify it. Browser storage/KV is preferences only, never authoritative
+shared content. See [REFERENCE.md](REFERENCE.md#agent-editability-contract).
+
+## Before authoring
+Inspect the target binding, existing data formats/CLIs, and conversation decisions.
+Choose files versus semantic CLI deliberately; ask only when ownership
+(personal/shared) or mutation invariants are genuinely unclear.
+
 ## Quick start
 
 ```bash
-cd <workdir>/oqto-apps/<app-id>
+cd <workdir>/oqto-apps/<app-id>.oqtoapp
 pnpm install
 pnpm typecheck && pnpm test && pnpm build
 # use @byteowlz/oqto-app-sdk/testing for deterministic host/concurrency tests
@@ -26,38 +39,46 @@ Full contract and capability semantics: see [REFERENCE.md](REFERENCE.md).
 ## App layout (working convention — provisional)
 
 ```
-<workdir>/oqto-apps/<app-id>/
+<workdir>/oqto-apps/<app-id>.oqtoapp/
   oqto-app.toml          # manifest (TOML, schema "oqto-app/v0")
-  src/                   # app source (see EXAMPLES.md for the SDK skeleton)
+  src/                   # presentation source
+  fixtures/              # optional sample/test content, not live instance data
+  operations/            # optional pinned CLI/operation implementation
   bundle/                # built sandboxed-web entry (self-contained)
   ui/                    # declarative UI data payloads (JSON)
-  test/                  # app tests
+  test/                  # app + agent-editability tests
 ```
 
-Everything about this layout except the vocabulary is provisional: the recognized
-filesystem roots and the resolver are specified in ADR-0038 but not implemented
-(`oqto-171p`). Keep the layout mechanical so migration is a move, not a rewrite.
+Live user/shared content belongs in the Instance's bound work-directory resource,
+not inside the immutable App package; keep only fixtures beside source. The resolver
+is specified in ADR-0038 but not implemented (`oqto-efbj`). Keep this provisional
+layout mechanical so migration is a move, not a rewrite.
 
 ## Hard rules
 
-1. Only surface to the outside world: `connectOqtoApp()` and its granted
-   capabilities (`files`, `kv`, `notifications`, `theme`). No `fetch` to Oqto,
+1. Durable user/shared content must remain agent-editable through documented files
+   with live refresh or through stable semantic operations backed by a JSON CLI.
+   Never trap authoritative content in localStorage, IndexedDB, UI-only state, or
+   an MCP-only interface.
+2. The sandboxed presentation's only outside surface is `connectOqtoApp()` and
+   its granted capabilities (`files`, `kv`, `notifications`, `theme`). No `fetch` to Oqto,
    DOM/window escape, shell/store import, credential, path, mount, or socket.
-2. Theme via read-only Host theme snapshots/tokens — never mutate or hardcode Oqto
+3. Theme via read-only Host theme snapshots/tokens — never mutate or hardcode Oqto
    appearance.
-3. Capabilities used must appear in manifest `requested_capabilities`; a request
+4. Capabilities used must appear in manifest `requested_capabilities`; a request
    is not a grant. Test with `@byteowlz/oqto-app-sdk/testing`.
-4. Bundles are self-contained (CSP: packaged bundle only, no CDN, no network).
-5. Declarative payloads are data only, validated against the advertised profile,
+5. Bundles are self-contained (CSP: packaged bundle only, no CDN, no network).
+6. Declarative payloads are data only, validated against the advertised profile,
    with a declared fallback.
-6. Manifests are TOML — never YAML.
+7. Manifests are TOML — never YAML.
 
 ## Verification loop
 
 The SDK test Host exercises the real MessageChannel protocol — no running Oqto
-required. Test host-driven bound resources, external-writer conflicts, watcher
-coalescing, missing grants, and disconnects. Then run the App's own preview and
-screenshot loop at real viewports (1440×900, 390×844).
+required. Prove that an external agent edit updates an open interface, App writes
+remain visible to agents, conflicts do not clobber data, and CLI/UI operations
+share parity. Also test watcher coalescing, missing grants, and disconnects. Then
+run the preview/screenshot loop at real viewports (1440×900, 390×844).
 
 ## Boundary — do not fabricate
 
@@ -69,11 +90,6 @@ stop and say so — track against `oqto-efbj` / `oqto-xcgg` — instead of inven
 manifest fields the host will never read. When asked how the app gets "installed"
 today, the honest answer is: it doesn't; it runs standalone via the workbench and
 is structured for discovery.
-
-## Reference
-
-Full contract, capability semantics, and authoring rules: [REFERENCE.md](REFERENCE.md).
-Examples, manifest, and sanity checklist: [EXAMPLES.md](EXAMPLES.md).
 
 ## Open questions — ask, don't assume
 
