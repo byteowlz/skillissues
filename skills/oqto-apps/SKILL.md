@@ -24,12 +24,31 @@ Inspect the target binding, existing data formats/CLIs, and conversation decisio
 Choose files versus semantic CLI deliberately; ask only when ownership
 (personal/shared) or mutation invariants are genuinely unclear.
 
+## Scaffold (preferred entry point)
+
+Use the SDK's dependency-free scaffold instead of hand-writing the skeleton:
+
+```bash
+# managed hosts: offline SDK store provisioned at $OQTO_APP_SDK_HOME
+oqto-app-init <App Name> --dir <workdir>/oqto-apps
+# explicit SDK location (bun/npx both work):
+bunx oqto-app-init <App Name> --dir <workdir>/oqto-apps --sdk "file:$OQTO_APP_SDK_PATH"
+```
+
+It creates `<workdir>/oqto-apps/<app-id>.oqtoapp/` with a publishable
+manifest (`oqto-app/v0`, sandboxed-web, work-directory binding, KV grant),
+a minimal themed presentation (`src/app.ts` + `bundle/index.html`), and a
+package.json whose `@byteowlz/oqto-app-sdk` dependency resolves without
+network: `--sdk` wins, then `$OQTO_APP_SDK_PATH`, then the newest version
+directory under `$OQTO_APP_SDK_HOME`, then a version-pinned github fallback.
+Then edit the generated `oqto-app.toml` to request the capabilities the App
+actually needs; remember every package change requires republish.
+
 ## Quick start
 
 ```bash
 cd <workdir>/oqto-apps/<app-id>.oqtoapp
-pnpm install
-pnpm typecheck && pnpm test && pnpm build
+bun install && bun run build
 # use @byteowlz/oqto-app-sdk/testing for deterministic host/concurrency tests
 ```
 
