@@ -21,6 +21,7 @@ agent skills for byteowlz tools and beyond.
 - [`tui-design`](skills/tui-design/SKILL.md) - Design and build modern, ergonomic, consistent TUIs.
 - [`use-sldr`](skills/use-sldr/SKILL.md) - Create, build, and share presentations with the sldr CLI — modular markdown slides, swappable layouts and flavors, self-contained HTML output.
 - [`wiki-workflow`](skills/wiki-workflow/SKILL.md) - Wiki knowledge architecture for shared markdown repos.
+- [`xlatch`](skills/xlatch/SKILL.md) - Build, register, grant, and invoke xlatch actions for phone share sheets, local agents, or server integrations.
 <!-- SKILLS:END -->
 
 ## Installation
