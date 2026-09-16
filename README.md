@@ -10,6 +10,7 @@ agent skills for byteowlz tools and beyond.
 - [`design-probe-gallery`](skills/design-probe-gallery/SKILL.md) - Build standalone design-probe galleries to explore UI variants BEFORE touching production code.
 - [`document_generation`](skills/document_generation/SKILL.md) - This skill should be used to create high quality pdf documents based on predefined templates.
 - [`document_template_creation`](skills/document_template_creation/SKILL.md) - Create professional document templates for tmpltr based on existing files (docx, pdf) or from scratch.
+- [`dpty-operate`](skills/dpty-operate/SKILL.md) - Operate a dpty machine unit — introspect capability, match and run recipes, place and supervise Work Requests/Instances, handle unload policy, and report to gvnr over the mesh.
 - [`drftr`](skills/drftr/SKILL.md) - Use this skill whenever a design folder (a directory containing design.
 - [`ears-dictionary-suggestions`](skills/ears-dictionary-suggestions/SKILL.md) - Analyze eaRS dictation transcript JSONL logs and suggest dictionary replacements.
 - [`home-assistant-hmr-cli`](skills/home-assistant-hmr-cli/SKILL.md) - |
