@@ -48,6 +48,9 @@ Author a slide once; reuse it in any deck, restyle with any flavor, rebuild byte
 - **Make decks portable.** Outputs are self-contained (media embedded). Ship fonts *in the flavor* (local `font_imports`) so they render on any machine. Default output is a directory (media streams natively); `--single-file` inlines everything into one mailable HTML; `sldr bundle` packs the editable sources as a `.sldr`.
 - **Read the error.** A missing slide/flavor/layout fails loud and lists what's available — the message *is* the fix. sldr never silently substitutes. A layout whose body lacks the markers it needs (e.g. `framed-image` with no `::content::`/`::image::`) also warns at build, naming the slide and expected markers — fix the markers or pick a layout matching the body.
 - **Verify visually.** Open or screenshot the deck before declaring done; structure passing ≠ looks right.
+- **Reuse before you write.** `sldr search "eval harness" --long` ranks the whole library (name, title, tags, topic, description, *body*) and shows where each hit matched. A slide that already says it is one playlist line away — `sldr add talk that-slide` — never a copy.
+- **Look before you edit something shared.** `sldr where my-slide` lists every deck that uses it (editing it changes all of them — that is the point, but say so). `sldr where --layout framed` lists every slide on a layout before you touch its HTML. `sldr zones my-slide` shows what fills each region of the slide and which file an edit to it belongs in (slide markdown vs flavor). `sldr layouts-for my-slide --limit 5` ranks layouts by what each would hide, fold or leave empty — arithmetic, not taste; you still choose.
+- **Media lives beside the slide.** `sldr media add my-slide ~/Downloads/chart.png` copies it into that slide's `media/` and prints the reference to paste (`![…](media/chart.png)`). `sldr media ls --unused` finds orphaned files.
 
 ## Layout cheat sheet
 
@@ -62,6 +65,9 @@ These four are the `sldr ls layouts` **categories** (Title&section / Body / Imag
 
 ```bash
 sldr ls slides|playlists|flavors|layouts     # discover what exists (names)
+sldr search "query" --long                   # full-text over the library, ranked
+sldr where my-slide | --layout framed        # blast radius before editing shared things
+sldr zones my-slide --json                   # regions → content → which file owns it
 sldr show flavor aurora                      # read a flavor's/layout's actual source
 sldr show layout framed > ~/sldr/layouts/mine.html  # …or fork it as a starting point
 sldr build talk --flavor aurora --lang de    # build with a flavor + language
