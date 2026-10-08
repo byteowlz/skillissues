@@ -16,8 +16,9 @@ never hidden state or installed blobs.
 Every App must expose a simple durable state plane that backend agents can edit
 without driving its UI. Prefer documented files plus live reload. Add a schema-
 validated JSON CLI/operation table only when validation, transactions, or derived
-behavior justify it. Browser storage/KV is preferences only, never authoritative
-shared content. See [REFERENCE.md](REFERENCE.md#agent-editability-contract).
+behavior justify it. KV is preferences only, never authoritative shared content.
+Browser storage (`localStorage`/`IndexedDB`) is unavailable in the sandboxed
+frame: the getter throws, so never touch it. See [REFERENCE.md](REFERENCE.md#agent-editability-contract).
 
 ## Before authoring
 Inspect the target binding, existing data formats/CLIs, and conversation decisions.
@@ -81,12 +82,13 @@ provisional layout mechanical so migration is a move, not a rewrite.
    Never trap authoritative content in localStorage, IndexedDB, UI-only state, or
    an MCP-only interface.
 2. The sandboxed presentation's only outside surface is `connectOqtoApp()` and
-   its granted capabilities (`files`, `kv`, `notifications`, `theme`). No `fetch` to Oqto,
+   its granted capabilities (`files`, `kv`, `theme`, `operations`, `agent_context`). No `fetch` to Oqto,
    DOM/window escape, shell/store import, credential, path, mount, or socket.
 3. Theme via read-only Host theme snapshots/tokens — never mutate or hardcode Oqto
    appearance.
 4. Capabilities used must appear in manifest `requested_capabilities`; a request
-   is not a grant. Test with `@byteowlz/oqto-app-sdk/testing`.
+   is not a grant. `files`, `operations` and `agent_context` also need their
+   `[capability.<name>]` authority table (see EXAMPLES.md); `theme`/`kv` take none. Test with `@byteowlz/oqto-app-sdk/testing`.
 5. Bundles are self-contained (CSP: packaged bundle only, no CDN, no network).
 6. Declarative payloads are data only, validated against the advertised profile,
    with a declared fallback.

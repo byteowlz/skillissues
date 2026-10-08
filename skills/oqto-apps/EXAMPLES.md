@@ -3,35 +3,62 @@
 ## Manifest (`oqto-app.toml`, TOML — never YAML)
 
 ```toml
-schema = "oqto-app/v0"                # provisional pin; see ADR-0027 deferral
+schema = "oqto-app/v0"
 
-id = "quota-explorer"
+id = "quota-explorer"                 # must equal the <id>.oqtoapp directory name
 version = "0.1.0"
 title = { en = "Quota Explorer", de = "Quota-Explorer" }
 description = "Inspect per-work-directory disk quota"
 
 # TOML gotcha: every top-level key MUST come before the first [table] header,
 # or it silently nests into that table.
-presentations = ["declarative", "sandboxed-web"]
-requested_capabilities = ["kv", "theme", "notifications"]
-bindings = ["work-directory"]         # narrowest binding containing all data
+presentations = ["sandboxed-web"]     # the only presentation the runtime accepts today
+requested_capabilities = ["files", "kv", "theme"]
+bindings = ["work-directory"]         # the first runtime slice supports only this binding
 default_binding = "work-directory"
-
-[presentation.declarative]
-profile = "oqto/tables-v1"            # versioned profile; host advertises support
-entry = "ui/entry.json"               # validated UI data (JSON)
 
 [presentation.sandboxed-web]
 entry = "bundle/index.html"           # self-contained; CSP: packaged bundle only
 
-[instance_state]                      # hot-switching across fidelity thresholds
-versioned = true
+# Authority tables: files, operations and agent_context each REQUIRE one;
+# theme and kv take none (declaring [capability.theme] is an error).
+[capability.files]
+[[capability.files.resources]]        # 1..32 resources
+role = "quota-report"                 # semantic name the App addresses
+path = "reports/quota.json"           # work-directory-relative; <=256 bytes, <=16 components;
+                                      # no .git/.oqto/oqto-apps components
+access = "read"                       # "read" | "readwrite"
+watch = true                          # optional, default false
+
+[[capability.files.resources]]
+role = "quota-notes"
+path = "reports/quota-notes.md"
+access = "readwrite"
+
+[instance_state]
+versioned = false                     # true only with a versioned state serialization
 
 [assets]
 max_bytes = 2_000_000
 ```
 
-Unknown fields are preserved by the resolver — never strip them.
+This manifest is validated against the live resolver (`oqto-apps::parse_manifest`).
+Unknown top-level keys are preserved by the resolver — never strip them — but
+unknown **capabilities** are rejected.
+
+Runtime truth for the current slice (check before copying older examples):
+
+- `presentations` accepts only `"sandboxed-web"`. The ADR-0038 `declarative`
+  presentation is designed but not yet rendered; declaring it fails with
+  `only sandboxed-web presentations are supported`.
+- Known capabilities: `files`, `operations`, `agent_context` (each REQUIRES its
+  `[capability.<name>]` authority table) and `theme`, `kv` (take NO table).
+  `notifications` appears in SDK types but is not a runtime capability yet;
+  requesting it fails with `UnknownCapability`.
+- `bindings`/`default_binding` must be `work-directory`.
+- `[capability.operations]` = `table = "<package-relative operations file>"`,
+  `ids = ["<operation id>", ...]`; `[capability.agent_context]` =
+  `catalog = "<package-relative catalog file>"`.
 
 ## Sandboxed-web app skeleton (`@byteowlz/oqto-app-sdk`)
 
@@ -70,7 +97,6 @@ export function QuotaExplorer() {
         const [file] = await host.files.pick({ accept: ["text/*"] });
         if (!file) return;
         await host.kv.set("lastOpenRef", file.ref);
-        await host.notifications?.notify({ level: "success", message: `Picked ${file.label}` });
         setPicked(file.label);
       }}>
         Pick usage report
@@ -181,7 +207,7 @@ operation IDs, conflict behavior, and exact test/build/publish commands:
       `requested_capabilities` (requests remain separate from grants)
 - [ ] `bindings` is the narrowest scope that contains all data
 - [ ] README documents canonical content files/schemas and optional CLI operations
-- [ ] authoritative content is file/CLI editable; browser storage is preferences only
+- [ ] authoritative content is file/CLI editable; preferences live in `kv`, never browser storage
 - [ ] external edits live-refresh an open App; stale saves fail without clobbering
 - [ ] UI/CLI/MCP adapters derive from one operations table and share scenario tests
 - [ ] `bundle/` is self-contained — grep for `http://`, `https://`, `fetch(` against

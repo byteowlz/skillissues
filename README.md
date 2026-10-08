@@ -4,6 +4,7 @@ agent skills for byteowlz tools and beyond.
 
 ## Skills
 <!-- SKILLS:START -->
+- [`agent-readiness`](skills/agent-readiness/SKILL.md) - Audit agent-facing state, operations, safety and accessibility using reproducible evidence, not a readiness score.
 - [`bitter-lesson-proof-project`](skills/bitter-lesson-proof-project/SKILL.md) - Design or audit a software tool so its value survives better models.
 - [`castr-podcast`](skills/castr-podcast/SKILL.md) - "Manage podcast episodes, scripts, sources, and comments in CastR via its REST API.
 - [`cmfy-cli`](skills/cmfy-cli/SKILL.md) - |
