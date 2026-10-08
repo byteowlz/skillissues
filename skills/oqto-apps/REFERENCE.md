@@ -10,9 +10,9 @@
 - **No agent-authored React, Rust, Swift, or other code loads into an OqtoUI host
   process.** Your code runs in its own document (standalone workbench today,
   sandboxed frame later). This is a contract, not a preference.
-- Initial capabilities (files, Account-private preference KV, notifications,
-  theme; later: operations, session input, navigation, dialogs, egress) are
-  **declared, never self-granted**.
+- Runtime capabilities today: `files`, Account-private preference `kv`, `theme`,
+  pinned `operations` and `agent_context` (later: notifications, session input,
+  navigation, dialogs, egress). They are **declared, never self-granted**.
 - Binding is the narrowest durable owner that contains the app's data
   (work-directory → workspace → account → deployment). Never widen silently.
 - The manifest preserves unknown fields; assets are bounded; discovery rejects
@@ -70,6 +70,22 @@ without an inspect/export/edit adapter; UI-only mutations; whole-string shell
 commands; an App-controlled workdir socket; separate CLI/MCP behavior that drifts
 from the UI.
 
+## Manifest authority tables
+
+`files`, `operations` and `agent_context` carry authority that the manifest must
+spell out exactly; the resolver rejects the request without its table and
+quotes the expected shape. `theme`/`kv` take no table.
+
+```toml
+[capability.files]
+[[capability.files.resources]]   # 1..32, unknown keys rejected
+role = "vendor-data"             # semantic name the App addresses (<=64 bytes)
+path = "vendor-data.json"        # work-directory-relative, <=256 bytes, <=16 components;
+                                 # reserved components: .git, .oqto, oqto-apps
+access = "read"                  # "read" | "readwrite"
+watch = true                     # optional, default false
+```
+
 ## Files capability v0.1 (contract — tracked as oqto-xcgg)
 
 Canonical package: `~/byteowlz/oqto-app-sdk/` (`@byteowlz/oqto-app-sdk`).
@@ -105,13 +121,33 @@ an expected result: re-read and apply the App's domain-specific rebase policy.
 `stat` is the polling fallback; `watch` emits coalescible version-only changes.
 Host-driven “Open with” supplies `host.context.bound` at mount.
 
+## Sandboxed frame constraints (runtime truth)
+
+The shell mounts a sandboxed-web presentation in an opaque-origin iframe
+(`sandbox` without `allow-same-origin`). Consequences an App must handle:
+
+- **Browser storage throws.** Reading `window.localStorage` (or IndexedDB) raises
+  `Forbidden in a sandboxed document without the 'allow-same-origin' flag`.
+  Persist preferences through the granted `kv` capability; keep authoritative
+  content in bound files. If shared code must also run standalone, wrap storage
+  access in try/catch with an in-memory fallback rather than letting it crash
+  the first render.
+- **Degrade per capability, not all-or-nothing.** Apply the theme first, then
+  guard each capability independently: a missing grant disables one feature, it
+  must not blank the App.
+- **Framed vs standalone.** `connectOqtoApp()` derives the host origin from the
+  embedding context and rejects when that is opaque/missing. Detect
+  `window.parent !== window`: inside a host frame a connect failure is a bridge
+  error to show (never silently switch to fake/standalone data); only a true
+  top-level tab may run a standalone/demo mode.
+
 ## Authoring rules (full)
 
 1. Import `connectOqtoApp()` from `@byteowlz/oqto-app-sdk`; React Apps may use the
    optional `@byteowlz/oqto-app-sdk/react` provider. Do not duplicate manifest
    metadata in runtime code.
 2. Reach the outside world **only** through granted Host capabilities (`files`,
-   `kv`, `notifications`, `theme`). No `fetch` to Oqto, direct DOM/window escape,
+   `kv`, `theme`, `operations`, `agent_context`). No `fetch` to Oqto, direct DOM/window escape,
    shell/store import, credential, path, mount, or control socket.
 3. Consume theme snapshots/tokens from the read-only `theme` capability; do not
    hardcode a host scheme or mutate Oqto appearance.
