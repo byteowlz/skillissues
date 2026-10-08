@@ -8,8 +8,8 @@ agent skills for byteowlz tools and beyond.
 - [`castr-podcast`](skills/castr-podcast/SKILL.md) - "Manage podcast episodes, scripts, sources, and comments in CastR via its REST API.
 - [`cmfy-cli`](skills/cmfy-cli/SKILL.md) - |
 - [`design-probe-gallery`](skills/design-probe-gallery/SKILL.md) - Build standalone design-probe galleries to explore UI variants BEFORE touching production code.
-- [`document_generation`](skills/document_generation/SKILL.md) - This skill should be used to create high quality pdf documents based on predefined templates.
-- [`document_template_creation`](skills/document_template_creation/SKILL.md) - Create professional document templates for tmpltr based on existing files (docx, pdf) or from scratch.
+- [`document-generation`](skills/document-generation/SKILL.md) - This skill should be used to create high quality pdf documents based on predefined templates.
+- [`document-template-creation`](skills/document-template-creation/SKILL.md) - Create professional document templates for tmpltr based on existing files (docx, pdf) or from scratch.
 - [`dpty-operate`](skills/dpty-operate/SKILL.md) - Operate a dpty machine unit — introspect capability, match recipes to observed capacity, place and supervise Work Requests, reserve capacity, manage loadouts, read the ledger, and report to gvnr.
 - [`drftr`](skills/drftr/SKILL.md) - Use this skill whenever a design folder (a directory containing design.
 - [`ears-dictionary-suggestions`](skills/ears-dictionary-suggestions/SKILL.md) - Analyze eaRS dictation transcript JSONL logs and suggest dictionary replacements.

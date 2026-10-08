@@ -1,5 +1,5 @@
 ---
-name: document_generation
+name: document-generation
 description: This skill should be used to create high quality pdf documents based on predefined templates. When the user asks for a document, you can list all available templates and brands and ask the user for the content to put into the template. You only edit the toml templates, not the .typ files. The toml/typ pair compile into a professional looking pdf via tmpltr.
 license: MIT
 ---
