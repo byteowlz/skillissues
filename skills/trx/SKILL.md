@@ -70,6 +70,7 @@ trx store sync
 trx list
 ```
 
+Require appropriate remote access. Run the checkout steps in each participating repository; do not onboard unrelated personal repositories into the team store.
 
 Verify that doctor reports the **named store's root** (e.g. `~/.local/share/trx-team/repos/...`), not the personal default root. `store sync init` configures the store; it does not by itself bind the current checkout.
 
