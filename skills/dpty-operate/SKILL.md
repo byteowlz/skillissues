@@ -13,8 +13,7 @@ HTTPS + token on the overlay mesh.
 The boundaries — **per-machine desired-state, not a fleet scheduler; facts
 published, agent reasons; HTTPS+token not SSH on the registry bus;
 explicit-and-logged unload; Ansible=provisioning / dpty=supervision** — are
-defined in this repo's `AGENTS.md`/`DESIGN.md` and `govnr` ADR-0009 (project
-nvridl). Read them; **this skill never relaxes them.** When a line here seems to
+defined in this repo's `AGENTS.md`/`DESIGN.md` and `govnr` ADR-0009. Read them; **this skill never relaxes them.** When a line here seems to
 conflict, the repo docs win. The symbol-level API reference is disclosed to
 [`details.md`](details.md); reach it when you need exact type/method/endpoint
 names.
@@ -31,7 +30,7 @@ names.
 3. **Instance** — the living thing: recipe + placement + who/why/priority/unload
    + started + expected.
 
-## Operating rules (project nvridl)
+## Operating rules
 
 The operator-side behaviours that differ from default — **apply every one, every run**:
 
@@ -40,18 +39,21 @@ The operator-side behaviours that differ from default — **apply every one, eve
   (`arch=["sm_120a"]`) matches ONLY a box of that arch; empty `arch` matches any
   acceptable backend. On `declared` ≠ `observed` **drift**, do not match and report.
 - **Read the ledger for truth.** `dpty status` shows the local ledger + capability
-  snapshot (drift surfaced). The queue is a machine-owned backlog, not a fleet scheduler.
+  snapshot (drift surfaced). The phase backlog is internal; durable scheduling
+  and recovery belong to skdlr / Pi Durable, not the loadout surface.
 - **Desired-state, not a scheduler.** A machine's dpty reconciles Running instances
   to a **loadout** chosen by **rules** (role / time schedule / trigger / idle
   fallback). It may accept a **remote loadout directive** (authz + provenance);
   it never fair-shares/preempts across the fleet.
 - **Reserve capacity explicitly.** `reserve` claims capacity on a machine for a
-  lease; the machine validates against reality and accepts or rejects (telling
-  *when free*). On lease end it auto-releases and **reverts to desired state**.
-  The machine refuses double-booking. No queueing, no preemption for a reservation.
+  lease; the machine validates against observed reality and accepts or rejects
+  (unknown *when free* is explicit). Device leases never cause eviction.
+  `--whole-box` is the explicit opt-in to managed accelerator yield, subject to
+  unload policy. Release/expiry reverts to desired state only once observation
+  confirms headroom; it never revives an operator-parked recipe.
 - **Facts published, agent reasons.** dpty/gvnr report honest, reservation-adjusted
   capacity (`total`, `available_after_current`, `available_if_reserved` + loadout +
-  reservations + queue). **The agent sizes/places** — there is no auto-sizing or
+  reservations). **The agent sizes/places** — there is no auto-sizing or
   auto-placement layer.
 - **Place explicitly, stamp provenance.** `dpty request --recipe <id> [--priority N]`
   — an agent enqueues work; the machine's dpty executes. Enqueue stamps AGENT_CTX
@@ -65,6 +67,25 @@ The operator-side behaviours that differ from default — **apply every one, eve
   Address = routing hint, never authorization. HTTPS + token; never SSH.
 - **Fleet view via gvnr, not local inference.** `dpty --fleet`,
   `list_runners?cap=`, `resolve/{id}`.
+
+## Loadout operations
+
+```bash
+dpty loadout status
+dpty loadout show
+dpty loadout set --recipe example/server --reason serving
+dpty loadout reserve --claim-gb 8 --duration-secs 600 --purpose training
+dpty loadout reservations
+dpty loadout release <id>       # --all releases only the caller's leases
+dpty loadout reconcile          # dry run
+```
+
+Config pin > persistent directive > rules. A static `[loadout.desired]` pin makes
+`set` refuse. Enable convergence with `[loadout] enabled = true`. Legacy tables
+and `nvridl.json` remain readable; first state mutation writes `loadout.json`,
+retaining the old file. There is no public enqueue/phase-queue verb. Read
+[`docs/loadouts.md`](../../../docs/loadouts.md) before migration or coordinated
+CLI/daemon activation; never interrupt an unowned workload for a proof.
 
 ## Authoring a recipe (the how-to)
 
