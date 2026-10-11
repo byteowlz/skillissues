@@ -12,7 +12,7 @@ from validate_report import SCHEMA, run, validate_report
 def fixture():
     schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
     return {
-        "schema_version": "agent-readiness/v1", "project": "synthetic-demo",
+        "schema_version": "agent-readiness/v2", "project": "synthetic-demo",
         "revision": "fixture-v1", "scope": "Report validator fixture, not a live app",
         "platforms": ["fixture"],
         "gates": {name: {"status": "pass", "reason": "Synthetic claim for validator test",

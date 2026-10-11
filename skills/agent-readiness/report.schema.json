@@ -14,7 +14,7 @@
   ],
   "properties": {
     "schema_version": {
-      "const": "agent-readiness/v1"
+      "const": "agent-readiness/v2"
     },
     "project": {
       "type": "string",
@@ -48,6 +48,7 @@
         "concurrency_and_recovery",
         "portable_state",
         "reproducibility",
+        "output_economy",
         "human_accessibility"
       ],
       "properties": {
@@ -70,6 +71,9 @@
           "$ref": "#/$defs/gate"
         },
         "reproducibility": {
+          "$ref": "#/$defs/gate"
+        },
+        "output_economy": {
           "$ref": "#/$defs/gate"
         },
         "human_accessibility": {
