@@ -16,6 +16,7 @@ agent skills for byteowlz tools and beyond.
 - [`ears-dictionary-suggestions`](skills/ears-dictionary-suggestions/SKILL.md) - Analyze eaRS dictation transcript JSONL logs and suggest dictionary replacements.
 - [`home-assistant-hmr-cli`](skills/home-assistant-hmr-cli/SKILL.md) - |
 - [`kyz`](skills/kyz/SKILL.md) - Use kyz secrets manager for secure credential storage and retrieval in agent workflows.
+- [`nym-corpus`](skills/nym-corpus/SKILL.md) - Prepare agent sessions or document corpora for training or publication with nym - discover recurring sensitive terms, build reviewed redaction profiles, gate sources with deny rules, transform with a private ledger and hand a hash-bound manifest to a consumer such as Kompressor.
 - [`oqto-apps`](skills/oqto-apps/SKILL.md) - Author user/agent-creatable Oqto apps per ADR-0038 — runtime-discovered workspace Apps with agent-editable file/CLI state, a TOML manifest, and declarative and/or sandboxed-web presentation.
 - [`oqto-setup`](skills/oqto-setup/SKILL.md) - Guide users through Oqto platform setup, troubleshoot installation issues, and verify deployment configuration.
 - [`sttmchn`](skills/sttmchn/SKILL.md) - Model interconnected state machines in TOML for system design and test case generation.
