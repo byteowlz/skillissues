@@ -52,37 +52,44 @@ Product names that models mistake for people (Claude Opus, GPT-4) are suppressed
 nym's built-in list; add your own harmless terms with
 `nym profiles add default --list allow TERM...`.
 
-## 3. Transform sessions
-
-For agent sessions, detection-driven:
+## 3. Detect and review values
 
 ```bash
-nym traces anon SESSIONS -o PRIVATE/out --keys PRIVATE/keys --plan PRIVATE/plan.json
-# user reviews the plan (pi-nym, or scripts/review_trace_anon.py in the nym repo), then:
-nym traces anon SESSIONS -o PRIVATE/out --keys PRIVATE/keys --apply-plan PRIVATE/approved.json
+nym traces anon WORKING --plan PRIVATE/values.json [--redaction-profile NAME]
 ```
 
-For training data prefer stable placeholders over realistic fakes:
-`nym anon FILE --strategy placeholder --placeholder-scope file|corpus`
-(`file`: `<EMAIL_1>` per file; `corpus`: `<EMAIL_8f3a2b>` derived from the value,
-identical across files and runs).
+The values file lists, per session, every value nym would replace (class, count,
+context). This is the review queue: a human marks false positives to keep, and
+should also check a sample of retained text for misses. Removing a value from the
+file keeps it; everything left in the file is replaced.
 
-## 4. Account and gate with the corpus workflow
+## 4. Propose, approve, account and gate
 
 ```bash
 nym corpus inventory WORKING -o PRIVATE/plan.json --scope session --deny-file deny.txt
-nym corpus status PRIVATE/plan.json --json
-# review: every source needs a review receipt, every unit an approved action
-nym corpus validate PRIVATE/plan.json --source WORKING --json
-nym corpus apply PRIVATE/plan.json --source WORKING -o CANDIDATE --ledger PRIVATE/ledger.json
+nym corpus propose PRIVATE/plan.json --source WORKING --values PRIVATE/approved-values.json \
+  -o PRIVATE/proposed.json --rename-files
+nym corpus approve PRIVATE/proposed.json -o PRIVATE/approved.json \
+  --receipt "values reviewed by <who> on <date>" --all-classes --unflagged --renames
+nym corpus review PRIVATE/approved.json -o PRIVATE/reviewed.json --basis owned \
+  --evidence "<rights statement>" --privacy-review "<who, how, when>" --serialization-reviewed
+nym corpus apply PRIVATE/reviewed.json --source WORKING -o CANDIDATE --ledger PRIVATE/ledger.json
 nym corpus verify --ledger PRIVATE/ledger.json --source WORKING --bundle CANDIDATE
 ```
 
+- `propose` turns every occurrence of a reviewed value into a numbered placeholder
+  (`<EMAIL_1>`) and proposes retention elsewhere. Values apply across all sessions
+  by default (`--values-scope corpus`): a name caught in one session is usually
+  present, undetected, in others. Sources missing from the values file stay
+  unresolved and block.
+- Proposals are not approvals. `approve` needs an explicit receipt and selection
+  (`--class`, `--all-classes`, `--unflagged`, `--renames`, `--media`); its summary
+  lists what is still pending. Only approve `--unflagged` after the retained-text
+  sample was reviewed, and `--media` only after someone looked at the images.
 - `deny.txt` holds regexes for projects, clients or topics that must never ship. A
   match disqualifies the whole source; it is never redacted into acceptability.
 - A blocked run explains itself in `error.reason` (`--json`) or on stderr with `-v`.
-- A source left byte-identical needs `publish_verbatim: true` in its review, because
-  retaining everything publishes the original file.
+- Every step writes a new plan and never overwrites; keep the sequence as the audit trail.
 
 ## 5. Hand off
 
@@ -95,8 +102,9 @@ the consumer; publishing is a separate, explicitly authorised action.
 
 - Recall is gated on planted canaries; natural-PII recall and precision on a new
   corpus are unmeasured until someone reviews a sample. Run a small pilot first.
-- `corpus` unit decisions are explicit per unit and are not yet pre-filled from
-  detector findings, so on large session corpora use `traces anon` for the
-  transformation and `corpus` for inventory, deny gating and accounting of the result.
+- Reviewed values match on word boundaries. Detector hits inside longer
+  alphanumeric runs (digit runs inside IDs, subword entities) are not replaced by
+  `propose`; review those classes rather than assuming they are covered.
+- Embedded images are retained unless replaced explicitly; nym cannot inspect them.
 - Discovery ranking cannot be validated with canaries that occur in few sessions:
   identities recurring across many sessions only show up in a real review.
