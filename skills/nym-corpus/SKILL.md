@@ -68,13 +68,15 @@ file keeps it; everything left in the file is replaced.
 ```bash
 nym corpus inventory WORKING -o PRIVATE/plan.json --scope session --deny-file deny.txt
 nym corpus propose PRIVATE/plan.json --source WORKING --values PRIVATE/approved-values.json \
-  -o PRIVATE/proposed.json --rename-files
+  -o PRIVATE/proposed.json --rename-files --export-profile pi-training-v1
 nym corpus approve PRIVATE/proposed.json -o PRIVATE/approved.json \
-  --receipt "values reviewed by <who> on <date>" --all-classes --unflagged --renames
+  --receipt "values reviewed by <who> on <date>" --all-classes --unflagged --renames \
+  --fields --drops
 nym corpus review PRIVATE/approved.json -o PRIVATE/reviewed.json --basis owned \
   --evidence "<rights statement>" --privacy-review "<who, how, when>" --serialization-reviewed
 nym corpus apply PRIVATE/reviewed.json --source WORKING -o CANDIDATE --ledger PRIVATE/ledger.json
 nym corpus verify --ledger PRIVATE/ledger.json --source WORKING --bundle CANDIDATE
+nym corpus report --ledger PRIVATE/ledger.json --json > PRIVATE/report.json
 ```
 
 - `propose` turns every occurrence of a reviewed value into a numbered placeholder
@@ -82,6 +84,12 @@ nym corpus verify --ledger PRIVATE/ledger.json --source WORKING --bundle CANDIDA
   by default (`--values-scope corpus`): a name caught in one session is usually
   present, undetected, in others. Sources missing from the values file stay
   unresolved and block.
+- `--export-profile pi-training-v1` removes provider signatures
+  (`thinkingSignature`, `textSignature` on content blocks), which nobody downstream
+  can read or review, and replaces entry and provider ids with linked tokens. Rules
+  are record-relative paths (`--drop-path`, `--replace-path`), never key names
+  anywhere: ids inside tool arguments are data. Readable thinking, tool data and
+  media are kept; `--strip-media` is opt-in and needs the consumer's agreement.
 - Proposals are not approvals. `approve` needs an explicit receipt and selection
   (`--class`, `--all-classes`, `--unflagged`, `--renames`, `--media`); its summary
   lists what is still pending. Only approve `--unflagged` after the retained-text
@@ -94,7 +102,10 @@ nym corpus verify --ledger PRIVATE/ledger.json --source WORKING --bundle CANDIDA
 ## 5. Hand off
 
 Give the consumer `CANDIDATE/` with its `manifest.json` (transformed-source paths,
-SHA-256 and sizes only). Teacher labels must bind those transformed hashes, never
+SHA-256 and sizes only) and `corpus report` output (value-free per-source and
+per-rule counts, receipts, provenance, manifest digest). Rescan the bundle with the
+consumer's own detector and report residual hits with their review status; never
+claim detector-clean or silently redact against a review decision. Teacher labels must bind those transformed hashes, never
 hashes of the private originals. Rights, segmentation and training gates belong to
 the consumer; publishing is a separate, explicitly authorised action.
 
