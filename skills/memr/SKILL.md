@@ -52,6 +52,8 @@ Line advance = pointsize × style line ratio: classic 1.20, modern 1.06, quiet
 Edge inset = pointsize × margin_ratio: classic 0.25 hugs the frame (~4% of
 height); structured panel classes center captions in their region. Fill + outline
 stay wholly inside the canvas; never clip ascenders, descenders or ellipsis.
+These classic values (line 1.20, margin 0.25) are user-approved: do not drift
+them without an explicit request.
 
 ## Caption placement
 
