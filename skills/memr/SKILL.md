@@ -7,12 +7,15 @@ description: "Render deterministic caption memes with memr: classic top/bottom s
 
 `memr` renders classic and modern caption memes locally: it owns caption
 typography and template caching, and does not call a third-party renderer.
-Source repo: `~/byteowlz/memr` (CLI `src/memr.py`, catalog `templates.json`,
-layout classes `layouts.json`, fonts Anton/Inter both OFL).
+Source repo: `~/byteowlz/memr`, hosted on forgejo `wismut/memr`
+(ssh://git@forgejo/wismut/memr.git); CLI `src/memr.py`, catalog `templates.json`,
+layout classes `layouts.json`, fonts Anton/Inter both OFL.
 
 ## Setup
 
 ```bash
+# if the repo is not on this machine (other machines share the forgejo remote):
+# git clone ssh://git@forgejo/wismut/memr.git ~/byteowlz/memr
 cd ~/byteowlz/memr && just install   # symlink to ~/.local/bin/memr
 memr doctor                          # font, catalog, cache, Pillow preflight
 ```
