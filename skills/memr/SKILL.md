@@ -46,8 +46,12 @@ bands), `stack-3`, `panel-2-row` (Drake's two stacked rows), `panel-2-col`,
 `grid-4` (2x2 Anakin-Padme panels). Assignment order: curated id → template
 `lines` → supplied caption count → `stack-2` fallback.
 
-Line advance = pointsize × style line ratio: classic 1.10, modern 1.06, quiet
+Line advance = pointsize × style line ratio: classic 1.20, modern 1.06, quiet
 1.10. Stacked caption lines keep a readable vertical gap rather than touching.
+
+Edge inset = pointsize × margin_ratio: classic 0.25 hugs the frame (~4% of
+height); structured panel classes center captions in their region. Fill + outline
+stay wholly inside the canvas; never clip ascenders, descenders or ellipsis.
 
 ## Caption placement
 

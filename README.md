@@ -24,7 +24,7 @@ agent skills for byteowlz tools and beyond.
 - [`trx`](skills/trx/SKILL.md) - Use trx, the git-backed issue tracker, to manage issues, epics and dependencies, configure repo-local or named central stores, onboard shared-store users, migrate ledgers, and sync across machines.
 - [`tui-design`](skills/tui-design/SKILL.md) - Design and build modern, ergonomic, consistent TUIs.
 - [`use-sldr`](skills/use-sldr/SKILL.md) - Create, build, and share presentations with the sldr CLI — modular markdown slides, swappable layouts and flavors, self-contained HTML output.
-- [`wiki-workflow`](skills/wiki-workflow/SKILL.md) - Wiki knowledge architecture for shared markdown repos.
+- [`wiki-workflow`](skills/wiki-workflow/SKILL.md) - Compile durable markdown wiki knowledge from sources, chats, and project context.
 - [`xlatch`](skills/xlatch/SKILL.md) - Build, register, grant, and invoke xlatch actions for phone share sheets, local agents, or server integrations.
 <!-- SKILLS:END -->
 
