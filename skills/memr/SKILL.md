@@ -27,6 +27,7 @@ memr doctor                          # font, catalog, cache, Pillow preflight
 | `memr render TEMPLATE` | primary verb: captions onto a template |
 | `memr templates` | catalog ids, cached/fetch state (`--ids` for scripts) |
 | `memr fetch TEMPLATE` | cache a catalog id or blank-template URL |
+| `memr fetch --all` | bulk-cache all catalog blanks (`--dry-run` plan; partial exit 4) |
 | `memr layouts` | caption layout classes and per-template assignments |
 | `memr config` | resolved settings plus the layer that supplied each value |
 | `memr doctor` | preflight checks |
@@ -102,7 +103,8 @@ Supported env: `MEMR_SCALE`, `MEMR_POINTSIZE_RATIO`, `MEMR_STROKE_RATIO`,
 
 ## Contract and safety
 
-- exit codes: 0 ok, 1 runtime, 2 usage, 3 refused overwrite (use `--force`)
+- exit codes: 0 ok, 1 runtime, 2 usage, 3 refused overwrite (use `--force`),
+  4 partial bulk fetch (report carries a `failures` array)
 - `--json` stdout is one parseable document on success **and** failure,
   with `ok`, `command`, `version`, and `error.code/message` on failure
 - success report has `layout.class`, `settings.style`, `text.lines`, and
@@ -116,6 +118,18 @@ Template photos are mostly third-party copyrighted works. They stay only in
 `~/.cache/memr/templates` and must never be committed to a repo or published.
 `templates.json` is metadata only (regenerate with `scripts/update-catalog.py`).
 Anton and Inter ship with their OFL license files; any added font must too.
+
+## Bulk blank acquisition
+
+`memr fetch --all --dry-run --json` gives an offline plan (ids, blank URLs, cache
+state) for the 212 catalog templates; `memr fetch --all` downloads only missing
+blanks sequentially and exits 4 on partial failure. Checked sources for raw
+blanks (repo docs/TEMPLATE-SOURCES.md): memegen-flask git repo (220 default.jpg
+assets, one shallow clone, ids = catalog ids), memegen template API (212 blanks),
+imgflip get_memes API (100 blanks, no auth), imgflip memetemplates HTML catalog
+(paginated, robots/ToS check). Raw blanks are third-party copyrighted stills:
+keep bulk corpora in private local stores only; never publish/commit them.
+HuggingFace meme datasets are captioned/benchmark corpora, not blank templates.
 
 ## Proof discipline
 
