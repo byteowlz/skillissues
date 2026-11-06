@@ -3,58 +3,58 @@ name: bitter-lesson-proof-project
 description: Design or audit a software tool so its value survives better models. Use when architecting or reviewing a tool, deciding whether something should be a feature, or when someone invokes the bitter lesson or worries a tool will be obsoleted by stronger AI.
 ---
 
-# Building bitter-lesson-proof projects
+# Designing for better models
 
-## Quick start
+The skill name is a discovery handle, not a promise of being future-proof. Use this as a critical design lens, not an architectural law or a reason to endorse the user's preferred design.
 
-For any feature, make one cut. Ask: does it exercise **judgment** (taste or choice a model makes, and makes better each year) or is it **mechanism** (a deterministic transform of inputs)?
+## What the Bitter Lesson does and does not establish
 
-- **Judgment → delegate it.** Expose the lever; never pull it. Keep it out of the core.
-- **Mechanism → build it**, and keep it reproducible: same inputs → identical output.
+Rich Sutton's [The Bitter Lesson](http://www.incompleteideas.net/IncIdeas/BitterLesson.html) describes a historical pattern in AI: general methods that leverage computation, particularly search and learning, have outperformed approaches built around human domain knowledge over the long run.
 
-Every rule below follows from that cut. Worked cases: [EXAMPLES.md](EXAMPLES.md). Full detail on each rule and how to audit a project: [REFERENCE.md](REFERENCE.md).
+That motivates asking whether bespoke reasoning scaffolding will survive better models. It does **not** establish that files beat databases, all judgment must be external, deterministic software is future-proof, or configuration is better than code. The guidance below is engineering inference, not a theorem derived from Sutton.
 
-## The thesis
+> **Let better models improve reasoning without replacing durable records or weakening guarantees.**
 
-Sutton's *bitter lesson*: general methods that scale with compute beat hand-engineered domain knowledge, eventually, every time. For tool-building, the corollary is: the parts of your tool that encode *judgment* are scaffolding a stronger model does better — building them into the core builds your own obsolescence. So build a dumb, deterministic substrate and delegate every judgment to the model or human operating it.
+## Quick start: separate four concerns
 
-> **The factoring is the product.** A tool that cleanly decomposes its domain into orthogonal, plain-text, deterministically-composed parts is leverage for a model. One that bundles judgment into the mechanism is something a strong model routes around.
+For a feature, identify:
 
-## The crucial subtlety
+1. **Evidence and state:** observations, source records, user-authored content, decisions, and history that must survive implementation changes.
+2. **Inference:** estimates, rankings, classifications, and proposals that may improve with a different model or algorithm. Make these evaluable and replaceable where worthwhile; do not silently promote them to facts.
+3. **Policy:** explicit choices about permissions, consent, risk, cost, and workflow. Record who may set them. A stronger model does not acquire authority to change them.
+4. **Mechanism and invariants:** transactions, validation, access checks, conflict detection, encryption, and faithful transformations. Enforce the promised guarantees independently of model suggestions.
 
-The lesson kills **hand-coded knowledge that competes with learning** — not clean data models, deterministic transforms, or orthogonal decomposition. Those are *normalization*, which gives a model clean levers. So: **normalize ruthlessly** (schemas, formats, clean separations) and **encode zero judgment** (no heuristic that chooses). Storing records in clean tables is engineering; "automatically flag the ones that matter" is the trap.
+These concerns can share a process or application. Separation means clear responsibilities and contracts, not mandatory microservices or shell-outs. A policy may itself be model-assisted; its adoption and enforcement still need explicit authority.
 
-## Defaults, not laws
+Read [REFERENCE.md](REFERENCE.md) for details and the audit procedure, and [EXAMPLES.md](EXAMPLES.md) for retrieval, CRM storage, and encryption cases.
 
-These are strong defaults and design pressures, not commandments — and they are not one-dimensional. Every rule bends for a deliberate, stated reason; what's forbidden is bending by accident, neglect, or scaffolding. The test for any deviation: is it **chosen policy with a reason** (an auth layer gating the human surface, a genuinely live artifact, a pinned offline model, a safety sandbox) or **accidental drift** (a feature stranded in one surface, a forked implementation, a hidden dependency)? The first is design; the second is the smell. Hold the rules as defaults and make exceptions on purpose, in the open.
+## Questions before recommending a change
 
-## Litmus test — before building any feature
+1. **Actual value:** what human workflow or measurable outcome does this feature serve? Do not replace user needs with model convenience.
+2. **Better-model counterfactual:** if relevant model capability improves substantially, which parts become redundant, which become more useful, and which guarantees remain necessary? Separate capability from price, latency, privacy, and availability assumptions.
+3. **Replacement:** can inference change without losing evidence, corrupting state, or bypassing policy? What migration and evaluation would a swap require?
+4. **Correctness:** what must be reproducible, idempotent, transactional, or auditable? These are different properties. Name necessary randomness and external state.
+5. **Shared semantics:** do interfaces use the same authoritative state and mutation rules? Are capability differences deliberate access policy rather than accidental gaps?
+6. **Total complexity:** does the design remove complexity or move it into synchronization, a configuration language, a filesystem adapter, or operations?
+7. **Evidence against the recommendation:** what simpler alternative could work, and what observation would change your mind?
 
-1. **10× test** — if the operating model gets 10× better, is this dead weight? → scaffolding.
-2. **Judgment test** — does it exercise taste/choice a model could do better? → delegate.
-3. **Determinism test** — same inputs → identical output? If not, nondeterminism leaked in.
-4. **Substrate test** — do the surfaces share one substrate, and is every capability *difference* deliberate policy (auth/trust/safety), not a feature stranded in one surface?
-5. **Deletion test** — delete the GUI/wizard/"smart" layer: lost *data/capability*, or only convenience?
-6. **Extension test** — are extension points *data the operator authors*, or a hardcoded enumeration?
+## Ten design defaults, not commandments
 
-## The ten rules (detail in [REFERENCE.md](REFERENCE.md))
+1. **Separate inference, policy, and enforcement.** Replace uncertain reasoning without delegating authority or integrity to it.
+2. **Protect durable assets and contracts.** Preserve source evidence, user data, identities, schemas, decisions, and migration paths.
+3. **Make faithful transformations reproducible where appropriate.** Do not force determinism onto cryptography, concurrency, or genuinely live inputs.
+4. **Share authoritative state and mutation semantics across surfaces.** Different permissions and ergonomics are legitimate.
+5. **Make intelligence replaceable when the benefit warrants it.** Embedded models, external agents, and simple heuristics are all candidates; compare measured quality and operating costs.
+6. **Choose the smallest adequate extension mechanism.** Data for parameters and templates; code for behavior when clearer. Recompilation is not inherently a design failure.
+7. **Grow domain vocabulary from demonstrated needs.** Keep schemas small but enforce important semantics; bound and validate extension fields.
+8. **Keep convenience layers replaceable without losing unique state.** Preserve user annotations and accessibility; allow justified domain-schema evolution.
+9. **Prefer portable artifacts when the product promises artifacts.** Live services need explicit dependencies and failure behavior, not fictional self-containment.
+10. **Distinguish snapshots, caches, and live views.** Specify source versions, freshness, rebuild costs, and access controls.
 
-1. **Separate judgment from mechanism** — the core decides nothing; it exposes levers.
-2. **Durable assets = data + the deterministic contract** — formats, transform, the user's data. Everything else is disposable.
-3. **Compute deterministically; reserve generation for the judgment layer** — regeneration is not idempotent.
-4. **Every surface over one substrate** — build whatever interfaces your users need (the author's call, none mandatory); keep them over one shared substrate (no forked implementation). Capability *differences* are fine as deliberate policy (auth, least-privilege, sandboxing), not as a feature stranded in one surface by neglect.
-5. **No embedded intelligence in the core** — no model calls, no judgment heuristics; shell out if needed.
-6. **Extension points are data, not code** — loaded at runtime; recompiling-to-extend is the smell.
-7. **Grow vocabulary by promotion, never speculation** — small core + escape hatch; promote recurring patterns.
-8. **Disposable satellites, never colonization** — convenience layers never extend core formats.
-9. **Self-contained, portable outputs** — no use-time dependency on services; embed at build.
-10. **The build/artifact boundary** — the build resolves refs; the artifact never points back at its maker.
+## Honesty requirements
 
-**Fail loud** (a determinism corollary): never silently substitute or guess; fail with a precise error naming what was searched and what's available — that *is* the agent-friendly behavior.
-
-**The honest wall:** some information is *irreducible* (a measurement, a human judgment, a captured image, an external response) — carry or approximate it, never pretend to derive it.
-
-## See also
-
-- [EXAMPLES.md](EXAMPLES.md) — worked cases run through this framework (semantic search, …).
-- [REFERENCE.md](REFERENCE.md) — full rule explanations, fail-loud, the honest wall, and a project-audit procedure.
+- Do not call something obsolete merely because a model could reproduce it. Cost, reliability, offline use, accessibility, and latency can justify it.
+- Do not mistake deterministic output for correct output, attribution for authenticated identity, or a model upgrade for permission.
+- Report consequential ambiguity and stale state explicitly. Safe, documented fallbacks are allowed; silent changes to meaning or authority are not.
+- Carry irreducible evidence rather than pretending to regenerate it. A reconstruction or inference is not the original observation.
+- Give a conditional recommendation with trade-offs and a concrete verification step. Do not use this skill as a mandate for an unrequested rewrite.
